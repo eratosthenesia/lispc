@@ -1,3 +1,5 @@
+; Copyright Jonathan Baca, 2016
+
 (defparameter *file-out* nil)
 (defparameter *exec-out* nil)
 (defparameter *last-compiled* nil)
