@@ -5,6 +5,17 @@
 (defparameter *last-compiled* nil)
 (defparameter *c-synonyms* (make-hash-table))
 
+(defun pairify (xs)
+  (if (null xs)
+      nil
+      (cons
+        (list (car xs) (cadr xs))
+        (pairify (cddr xs)))))
+
+(defmacro macropairs (m &rest xs)
+  `(progn
+     ,@(mapcar #'(lambda (x) `(,m ,@x)) (pairify xs))))
+
 (defmacro sethash (k v hash)
   `(setf (gethash ,k ,hash) ,v))
 
@@ -62,7 +73,7 @@
   (if (stringp x) x
       (let ((s (strof x)))
 	(if (numeric-string s) s
-	    (if (eq (char s 0) #\!) (replace-char #\- #\_ (subseq s 1))
+	    (if (eq (char s 0) #\!) (replace-char #\- #\_ (cof (subseq s 1)))
 		(replace-char #\- #\_ (string-downcase s)))))))
 
 (defmacro sethash (k v hash)
@@ -344,10 +355,10 @@
        (if typs 
 	   (apply #'cast-c (cast-c nym typ) typs)
 	   (format nil "((~a)(~a))" (cof typ) (cof nym))))
- (var (x &optional (type 'int) init)
+ (var (x &optional (type 'int) init &rest modifiers)
       (cofy x)
       (cofy type)
-      (format nil "~a ~{~a~^,~}~a" type (f/list x) (if init (format nil "=~a" (cof init)) "")))
+      (format nil "~a~a ~{~a~^,~}~a" (if modifiers (format nil "~{~a ~}" (mapcar #'cof modifiers))    "") type (f/list x) (if init (format nil "=~a" (cof init)) "")))
  (vars (x &optional (inter #\,) (newline t))
        (setf x (mapcar #'(lambda (y) (apply #'var-c (f/list y))) (f/list/n x 1)))
        (format nil (format nil "~~{~~a~~^~(~a~a~)~~}" inter (if newline #\Newline "")) x))
@@ -443,43 +454,154 @@
 ;; SYNONYMS
 
 ;;; CUDA STUFF
-(csyn 'cuda/malloc "cudaMalloc")
-(csyn 'cuda/memcpy "cudaMemcpy")
-(csyn 'cuda/free "cudaFree")
-(csyn 'cuda/host->dev "cudaMemcpyHostToDevice")
-(csyn 'cuda/dev->host "cudaMemcpyDeviceToHost")
-(csyn 'cuda/dev/count "cudaDeviceCount")
-(csyn 'cuda/dev/set "cudaSetDevice")
-(csyn 'cuda/dev/get "cudaGetDevice")
-(csyn 'cuda/dev/props "cudaDeviceProperties")
-(csyn 'cuda/sync "__syncthreads")
-(csyn 'block/idx "blockIdx")
-(csyn 'block/idx/x "blockIdx.x")
-(csyn 'block/idx/y "blockIdx.y")
-(csyn 'block/idx/z "blockIdx.z")
-(csyn 'thread/idx "threadIdx")
-(csyn 'thread/idx/x "threadIdx.x")
-(csyn 'thread/idx/y "threadIdx.y")
-(csyn 'thread/idx/z "threadIdx.z")
-(csyn 'block/dim "blockDim")
-(csyn 'block/dim/x "blockDim.x")
-(csyn 'block/dim/y "blockDim.y")
-(csyn 'block/dim/z "blockDim.z")
-(csyn 'dim/block "dimBlock")
-(csyn 'dim/grid "dimGrid")
+(macropairs csyn
+'cuda/malloc "cudaMalloc"
+'cuda/memcpy "cudaMemcpy"
+'cuda/free "cudaFree"
+'cuda/host->dev "cudaMemcpyHostToDevice"
+'cuda/dev->host "cudaMemcpyDeviceToHost"
+'cuda/dev/count "cudaDeviceCount"
+'cuda/dev/set "cudaSetDevice"
+'cuda/dev/get "cudaGetDevice"
+'cuda/dev/props "cudaDeviceProperties"
+'cuda/sync "__syncthreads"
+'block/idx "blockIdx"
+'block/idx/x "blockIdx.x"
+'block/idx/y "blockIdx.y"
+'block/idx/z "blockIdx.z"
+'thread/idx "threadIdx"
+'thread/idx/x "threadIdx.x"
+'thread/idx/y "threadIdx.y"
+'thread/idx/z "threadIdx.z"
+'block/dim "blockDim"
+'block/dim/x "blockDim.x"
+'block/dim/y "blockDim.y"
+'block/dim/z "blockDim.z"
+'dim/block "dimBlock"
+'dim/grid "dimGrid"
+
+;; MPI STUFF
+'mpi/success            "MPI_SUCCESS"
+'mpi/err/buffer         "MPI_ERR_BUFFER"
+'mpi/err/count          "MPI_ERR_COUNT"
+'mpi/err/type           "MPI_ERR_TYPE"
+'mpi/err/tag            "MPI_ERR_TAG"
+'mpi/err/comm           "MPI_ERR_COMM"
+'mpi/err/rank           "MPI_ERR_RANK"
+'mpi/err/request        "MPI_ERR_REQUEST"
+'mpi/err/root           "MPI_ERR_ROOT"
+'mpi/err/group          "MPI_ERR_GROUP"
+'mpi/err/op             "MPI_ERR_OP"
+'mpi/err/topology       "MPI_ERR_TOPOLOGY"
+'mpi/err/dims           "MPI_ERR_DIMS"
+'mpi/err/arg            "MPI_ERR_ARG"
+'mpi/err/unknown        "MPI_ERR_UNKNOWN"
+'mpi/err/truncate       "MPI_ERR_TRUNCATE"
+'mpi/err/other          "MPI_ERR_OTHER"
+'mpi/err/intern         "MPI_ERR_INTERN"
+'mpi/pending            "MPI_PENDING"
+'mpi/err/in/status      "MPI_ERR_IN_STATUS"
+'mpi/err/lastcode       "MPI_ERR_LASTCODE"
+'mpi/bottom             "MPI_BOTTOM"
+'mpi/proc/null          "MPI_PROC_NULL"
+'mpi/any/source         "MPI_ANY_SOURCE"
+'mpi/any/tag            "MPI_ANY_TAG"
+'mpi/undefined          "MPI_UNDEFINED"
+'mpi/bsend/overhead     "MPI_BSEND_OVERHEAD"
+'mpi/keyval/invalid     "MPI_KEYVAL_INVALID"
+'mpi/errors/are/fatal   "MPI_ERRORS_ARE_FATAL"
+'mpi/errors/return      "MPI_ERRORS_RETURN"
+'mpi/max/processor/name "MPI_MAX_PROCESSOR_NAME"
+'mpi/max/error/string   "MPI_MAX_ERROR_STRING"
+'mpi/char               "MPI_CHAR"
+'mpi/short              "MPI_SHORT"
+'mpi/int                "MPI_INT"
+'mpi/long               "MPI_LONG"
+'mpi/unsigned/char      "MPI_UNSIGNED_CHAR"
+'mpi/unsigned/short     "MPI_UNSIGNED_SHORT"
+'mpi/unsigned           "MPI_UNSIGNED"
+'mpi/unsigned/long      "MPI_UNSIGNED_LONG"
+'mpi/float              "MPI_FLOAT"
+'mpi/double             "MPI_DOUBLE"
+'mpi/long/double        "MPI_LONG_DOUBLE"
+'mpi/byte               "MPI_BYTE"
+'mpi/packed             "MPI_PACKED"
+'mpi/float/int          "MPI_FLOAT_INT"
+'mpi/double/int         "MPI_DOUBLE_INT"
+'mpi/long/int           "MPI_LONG_INT"
+'mpi/2int               "MPI_2INT"
+'mpi/short/int          "MPI_SHORT_INT"
+'mpi/long/double/int    "MPI_LONG_DOUBLE_INT"
+'mpi/long/long/int      "MPI_LONG_LONG_INT"
+'mpi/ub                 "MPI_UB"
+'mpi/lb                 "MPI_LB"
+'mpi/comm/world         "MPI_COMM_WORLD"
+'mpi/comm/self          "MPI_COMM_SELF"
+'mpi/ident              "MPI_IDENT"
+'mpi/congruent          "MPI_CONGRUENT"
+'mpi/similar            "MPI_SIMILAR"
+'mpi/unequal            "MPI_UNEQUAL"
+'mpi/tag/ub             "MPI_TAG_UB"
+'mpi/io                 "MPI_IO"
+'mpi/host               "MPI_HOST"
+'mpi/wtime/is/global    "MPI_WTIME_IS_GLOBAL"
+'mpi/max                "MPI_MAX"
+'mpi/min                "MPI_MIN"
+'mpi/sum                "MPI_SUM"
+'mpi/prod               "MPI_PROD"
+'mpi/maxloc             "MPI_MAXLOC"
+'mpi/minloc             "MPI_MINLOC"
+'mpi/band               "MPI_BAND"
+'mpi/bor                "MPI_BOR"
+'mpi/bxor               "MPI_BXOR"
+'mpi/land               "MPI_LAND"
+'mpi/lor                "MPI_LOR"
+'mpi/lxor               "MPI_LXOR"
+'mpi/group/null         "MPI_GROUP_NULL"
+'mpi/comm/null          "MPI_COMM_NULL"
+'mpi/datatype/null      "MPI_DATATYPE_NULL"
+'mpi/request/null       "MPI_REQUEST_NULL"
+'mpi/op/null            "MPI_OP_NULL"
+'mpi/errhandler/null    "MPI_ERRHANDLER_NULL"
+'mpi/group/empty        "MPI_GROUP_EMPTY"
+'mpi/graph              "MPI_GRAPH"
+'mpi/cart               "MPI_CART"
+'mpi/aint               "MPI_Aint"
+'mpi/status             "MPI_Status"
+'mpi/group              "MPI_Group"
+'mpi/comm               "MPI_Comm"
+'mpi/datatype           "MPI_Datatype"
+'mpi/request            "MPI_Request"
+'mpi/op                 "MPI_Op"
+'mpi/copy/function      "MPI_Copy_function"
+'mpi/delete/function    "MPI_Delete_function"
+'mpi/handler/function   "MPI_Handler_function"
+'mpi/user/function      "MPI_User_function"
+'mpi/init               "MPI_Init"
+'mpi/comm/size          "MPI_Comm_size"
+'mpi/comm/rank          "MPI_Comm_rank"
+'mpi/abort              "MPI_Abort"
+'mpi/get/processor/name "MPI_Get_processor_name"
+'mpi/get/version        "MPI_Get_version"
+'mpi/initialized        "MPI_Initialized"
+'mpi/wtime              "MPI_Wtime"
+'mpi/wtick              "MPI_Wtick"
+'mpi/finalize           "MPI_Finalize"
 
 ;;; BASIC STUFF
-(csyn 'null "NULL")
-(csyn 'arg/c "argc")
-(csyn 'arg/count "argc")
-(csyn 'arg/v "argv")
-(csyn 'arg/values "argv")
-(csyn 'integer "int")
-(csyn 'integer+ "long")
-(csyn 'real "float")
-(csyn 'real+ "double")
-(csyn 'boolean "char")
-(csyn 'cstring "char*")
+'null "NULL"
+'arg/c "argc"
+'arg/count "argc"
+'arg/v "argv"
+'arg/values "argv"
+'integer "int"
+'integer+ "long"
+'natural "unsigned int"
+'natural+ "unsigned long"
+'real "float"
+'real+ "double"
+'boolean "char"
+'cstring "char*")
 
 (defun count-lines-in-file (filename)
   (let ((n 0))
