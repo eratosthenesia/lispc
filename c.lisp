@@ -416,9 +416,10 @@
  (lambda (llist template &rest args)
   (cof (eval `(apply (replacify-lambda ,llist ,template) ',args))))
  (template (f vars template)
-	     (eval `(cdefun ,f (&rest args)
-			    (cof (apply (replacify-lambda ,vars ,template) (mapcar #'cof args)))))
-	     )
+	     (progn (eval `(cdefun ,f (&rest args)
+			    (cof
+         (apply (replacify-lambda ,vars ,template) (mapcar #'cof args)))))
+             "" ))
  (templates (f vars template)
             (progn
               (eval `(cdefun ,f (&rest argss)
@@ -478,7 +479,7 @@
 (csyn 'real "float")
 (csyn 'real+ "double")
 (csyn 'boolean "char")
-(csyn 'string "char*")
+(csyn 'cstring "char*")
 
 (defun count-lines-in-file (filename)
   (let ((n 0))
