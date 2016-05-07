@@ -301,19 +301,19 @@
  (if (test ifyes &optional ifno)
      (cofy test)
      (cofy ifyes)
-     (format nil "if(~a){~%   ~a;~%}~a"  test ifyes (if ifno (format nil "else{~%   ~a;~%}"(cof ifno)) "")))
+     (format nil "if(~a) {~%   ~a;~%}~a"  test ifyes (if ifno (format nil "else{~%   ~a;~%}"(cof ifno)) "")))
  (cond (pairs)
-       (format nil "if(~a){~{~%  ~a;~}~%}~{~a~}" (cof (caar pairs)) (mapcar #'cof (f/list (cadar pairs)))
+       (format nil "if(~a) {~{~%  ~a;~}~%}~{~a~}" (cof (caar pairs)) (mapcar #'cof (f/list (cadar pairs)))
 	       (mapcar #'(lambda (pair) (format nil "else if(~a){~{~%   ~a;~}~%}"
 						(cof (car pair)) (mapcar #'cof (f/list (cadr pair))))) (cdr pairs))))
  (main (&rest body)
-       (format nil "int main(int argc,char** argv)~a" (block-c body)))
+       (format nil "int main(int argc,char **argv)~a" (block-c body)))
  (for (a b c &rest lines)
       (cofy a) (cofy b) (cofy c)
       (format nil "for(~a;~a;~a)~a" a b c (block-c lines)))
  (while (test &rest lines)
    (cofy test)
-   (format nil "while(~a)~a" test (block-c lines)))
+   (format nil "while(~a) ~a" test (block-c lines)))
  (do-while (test &rest lines)
    (cofy test)
    (format nil "do~awhile(~a)" (block-c lines) test))
@@ -332,7 +332,7 @@
       (format nil "~{~a~}(~a)" (loop for i from 1 to n collect #\*) (cof x)))
  (pt (x &optional (n 1))
      (format nil "~{~a~}~a" (loop for i from 1 to n collect #\*) (cof x)))
- (nth (x &optional (n 0) &rest ns)
+ (nth (x &optional (n 0) &rest nils)
       (format nil "(~a)[~a]~a" (cof x) (cof n)
 	      (if ns
 		  (format nil "~{[~a]~}" (mapcar #'cof ns)) "")))
@@ -362,7 +362,9 @@
  (vars (x &optional (inter #\,) (newline t))
        (setf x (mapcar #'(lambda (y) (apply #'var-c (f/list y))) (f/list/n x 1)))
        (format nil (format nil "~~{~~a~~^~(~a~a~)~~}" inter (if newline #\Newline "")) x))
- (struct (nym &optional vars)
+ (varlist (args)
+          (vars-c args #\;))
+  (struct (nym &optional vars)
 	 (cofy nym)
 	 (if vars
 	     (format nil "struct ~a{~a;}" nym (vars-c vars #\;))
@@ -413,7 +415,7 @@
 	(format nil "(~a)" x))
  (comment  (&rest xs)
            (let* ((small (eq (car xs) 's))
-                  (s (format nil "/* ~{~a~} */~%" (mapcar #'cof (if small (cdr xs) xs))))
+                  (s (format nil "/* ~{~a~^ ~} */~%" (mapcar #'cof (if small (cdr xs) xs))))
                   (v (if small "" (format nil "/**~{~a~}**/~%" (loop for i from 1 to (- (length s) 7) collect #\*)))))
 	     (format nil "~%~a~a~a~%" v s v)))
  (header (nym &key local)
@@ -455,30 +457,30 @@
 
 ;;; CUDA STUFF
 (macropairs csyn
-'cuda/malloc "cudaMalloc"
-'cuda/memcpy "cudaMemcpy"
-'cuda/free "cudaFree"
-'cuda/host->dev "cudaMemcpyHostToDevice"
-'cuda/dev->host "cudaMemcpyDeviceToHost"
-'cuda/dev/count "cudaDeviceCount"
-'cuda/dev/set "cudaSetDevice"
-'cuda/dev/get "cudaGetDevice"
-'cuda/dev/props "cudaDeviceProperties"
-'cuda/sync "__syncthreads"
-'block/idx "blockIdx"
-'block/idx/x "blockIdx.x"
-'block/idx/y "blockIdx.y"
-'block/idx/z "blockIdx.z"
-'thread/idx "threadIdx"
-'thread/idx/x "threadIdx.x"
-'thread/idx/y "threadIdx.y"
-'thread/idx/z "threadIdx.z"
-'block/dim "blockDim"
-'block/dim/x "blockDim.x"
-'block/dim/y "blockDim.y"
-'block/dim/z "blockDim.z"
-'dim/block "dimBlock"
-'dim/grid "dimGrid"
+'cuda/malloc     "cudaMalloc"
+'cuda/memcpy     "cudaMemcpy"
+'cuda/free       "cudaFree"
+'cuda/host->dev  "cudaMemcpyHostToDevice"
+'cuda/dev->host  "cudaMemcpyDeviceToHost"
+'cuda/dev/count  "cudaDeviceCount"
+'cuda/dev/set    "cudaSetDevice"
+'cuda/dev/get    "cudaGetDevice"
+'cuda/dev/props  "cudaDeviceProperties"
+'cuda/sync       "__syncthreads"
+'block/idx       "blockIdx"
+'block/idx/x     "blockIdx.x"
+'block/idx/y     "blockIdx.y"
+'block/idx/z     "blockIdx.z"
+'thread/idx      "threadIdx"
+'thread/idx/x    "threadIdx.x"
+'thread/idx/y    "threadIdx.y"
+'thread/idx/z    "threadIdx.z"
+'block/dim       "blockDim"
+'block/dim/x     "blockDim.x"
+'block/dim/y     "blockDim.y"
+'block/dim/z     "blockDim.z"
+'dim/block       "dimBlock"
+'dim/grid        "dimGrid"
 
 ;; MPI STUFF
 'mpi/success            "MPI_SUCCESS"
