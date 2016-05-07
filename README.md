@@ -53,7 +53,7 @@ It's true that you can just use a long macro in **C** to get rid of the annoying
 
 Or even like this (with `template`__s__):
 
-    (templates make-foo (typ)
+    (templates make-foos (typ)
       (func (add/sym foo- typ) typ ((x typ) (y typ))
         (return (+ x (* y 2)))))
     (make-foos int long float etc)
