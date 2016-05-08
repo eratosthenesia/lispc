@@ -1,4 +1,4 @@
-# __LISP__/__c__
+# __LISP__/__c__ (Lispsy)
 
 ## Installing
 
