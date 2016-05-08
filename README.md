@@ -601,6 +601,9 @@ This creates a simple funcall-type structure, but is meant to be used with `defi
 ### `(define` definer deinee `)`
 Makes a `#define` statement in **C** with *definer* being the dirst argument and *definee* being the second argument.
 
+### `(pragma` {statement}* `)`
+Makes a `#pragma` statement in **C** with each statement seperated by a space.
+
 ### `(paren` term `)`
 Puts parentheses around *term*.
 
@@ -914,3 +917,16 @@ The reason why __LISP__ is capitalized in __LISP__/**c** and **C** is not is bec
 The reason why I keep bolding __LISP__ and __C__ is for quick reference: the __LISP__-heavy portions and __C__-heavy portions of this document are intended to be useful to be able to be looked up.
 
 __LISP__/__c__ is meant to be pronounced "lispsy".
+
+
+## TODO
+
+Add support for error checking.
+
+Add transparent support for **C++**.
+
+Add support for **OpenMP**.
+
+Add support for handling `import` directives that span multiple directories.
+
+Maybe get away from the `name-c` pragma.
