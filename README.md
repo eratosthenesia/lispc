@@ -495,7 +495,7 @@ This compiles to a `?:` statement. It compiles directly to `(`test`)?:(`if-true`
 ### `(if` test if-true if-false `)`
 Like the above, but compiles to an if statement.
 
-### `(cond` {condition if-true}* `)`
+### `(cond` {`(`condition if-true`)`}* `)`
 Works like the `cond` statement in **LISP**, but for **C**. Does this with a series of if-else statements.
 
 ### `(main` {statements}* `)`
@@ -699,9 +699,9 @@ This can be accessed through `/` `quotient` `ratio` `div` and `divide`.
 ### `/=`
 This can be accessed through `/=` `quotient-eq` `ratio-eq` `div-eq` `divide-eq` `quotient=` `ratio=` `div=` and `divide=`.
 ### `%`
-This can be accessed through `%` `modulo` `mod` and `remainder`.
+This can be accessed through `modulo` `mod` and `remainder`.
 ### `%=`
-This can be accessed through `%-eq` `modulo-eq` `mod-eq` `remainder-eq` `%=` `modulo=` `mod=` and `remainder=`.
+This can be accessed through `modulo-eq` `mod-eq` `remainder-eq` `modulo=` `mod=` and `remainder=`.
 ### `<<`
 This can be accessed through `<<` `l-shift` `shift-left` and `shl`.
 ### `<<=`
