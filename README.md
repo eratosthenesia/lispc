@@ -623,165 +623,165 @@ You'll notice that `mpi/comm/size` compiles to `MPI_Comm_size` and that `cuda/de
 
 ### General
 
-| Term | Replacement
-|--
-| null | NULL
-| arg/c | argc
-| arg/count | argc
-| arg/v | argv
-| arg/values | argv
-| integer | int
-| integer+ | long
-| natural | unsigned int
-| natural+ | unsigned long
-| real | float
-| real+ | double
-| boolean | char
-| cstring | char*
+| Term | Replacement |
+| --- | --- |
+| null | NULL |
+| arg/c | argc |
+| arg/count | argc |
+| arg/v | argv |
+| arg/values | argv |
+| integer | int |
+| integer+ | long |
+| natural | unsigned int |
+| natural+ | unsigned long |
+| real | float |
+| real+ | double |
+| boolean | char |
+| cstring | char* |
 
 ### CUDA
 
-| Term | Replacement
-|--
-| cuda/malloc | cudaMalloc
-| cuda/memcpy | cudaMemcpy
-| cuda/free | cudaFree
-| cuda/host->dev | cudaMemcpyHostToDevice
-| cuda/dev->host | cudaMemcpyDeviceToHost
-| cuda/dev/count | cudaDeviceCount
-| cuda/dev/set | cudaSetDevice
-| cuda/dev/get | cudaGetDevice
-| cuda/dev/props | cudaDeviceProperties
-| cuda/sync | __syncthreads
-| block/idx | blockIdx
-| block/idx/x | blockIdx.x
-| block/idx/y | blockIdx.y
-| block/idx/z | blockIdx.z
-| thread/idx | threadIdx
-| thread/idx/x | threadIdx.x
-| thread/idx/y | threadIdx.y
-| thread/idx/z | threadIdx.z
-| block/dim | blockDim
-| block/dim/x | blockDim.x
-| block/dim/y | blockDim.y
-| block/dim/z | blockDim.z
-| grid/dim | gridDim
-| grid/dim/x | gridDim.x
-| grid/dim/y | gridDim.y
-| grid/dim/z | gridDim.z
-| dim/block | dimBlock
-| dim/grid | dimGrid
+| Term | Replacement |
+| --- | --- |
+| cuda/malloc | cudaMalloc |
+| cuda/memcpy | cudaMemcpy |
+| cuda/free | cudaFree |
+| cuda/host->dev | cudaMemcpyHostToDevice |
+| cuda/dev->host | cudaMemcpyDeviceToHost |
+| cuda/dev/count | cudaDeviceCount |
+| cuda/dev/set | cudaSetDevice |
+| cuda/dev/get | cudaGetDevice |
+| cuda/dev/props | cudaDeviceProperties |
+| cuda/sync | __syncthreads |
+| block/idx | blockIdx |
+| block/idx/x | blockIdx.x |
+| block/idx/y | blockIdx.y |
+| block/idx/z | blockIdx.z |
+| thread/idx | threadIdx |
+| thread/idx/x | threadIdx.x |
+| thread/idx/y | threadIdx.y |
+| thread/idx/z | threadIdx.z |
+| block/dim | blockDim |
+| block/dim/x | blockDim.x |
+| block/dim/y | blockDim.y |
+| block/dim/z | blockDim.z |
+| grid/dim | gridDim |
+| grid/dim/x | gridDim.x |
+| grid/dim/y | gridDim.y |
+| grid/dim/z | gridDim.z |
+| dim/block | dimBlock |
+| dim/grid | dimGrid |
 
 ### MPI 
 
-| Term | Replacement
-|--
-| mpi/success | MPI_SUCCESS
-| mpi/err/buffer | MPI_ERR_BUFFER
-| mpi/err/count | MPI_ERR_COUNT
-| mpi/err/type | MPI_ERR_TYPE
-| mpi/err/tag | MPI_ERR_TAG
-| mpi/err/comm | MPI_ERR_COMM
-| mpi/err/rank | MPI_ERR_RANK
-| mpi/err/request | MPI_ERR_REQUEST
-| mpi/err/root | MPI_ERR_ROOT
-| mpi/err/group | MPI_ERR_GROUP
-| mpi/err/op | MPI_ERR_OP
-| mpi/err/topology | MPI_ERR_TOPOLOGY
-| mpi/err/dims | MPI_ERR_DIMS
-| mpi/err/arg | MPI_ERR_ARG
-| mpi/err/unknown | MPI_ERR_UNKNOWN
-| mpi/err/truncate | MPI_ERR_TRUNCATE
-| mpi/err/other | MPI_ERR_OTHER
-| mpi/err/intern | MPI_ERR_INTERN
-| mpi/pending | MPI_PENDING
-| mpi/err/in/status | MPI_ERR_IN_STATUS
-| mpi/err/lastcode | MPI_ERR_LASTCODE
-| mpi/bottom | MPI_BOTTOM
-| mpi/proc/null | MPI_PROC_NULL
-| mpi/any/source | MPI_ANY_SOURCE
-| mpi/any/tag | MPI_ANY_TAG
-| mpi/undefined | MPI_UNDEFINED
-| mpi/bsend/overhead | MPI_BSEND_OVERHEAD
-| mpi/keyval/invalid | MPI_KEYVAL_INVALID
-| mpi/errors/are/fatal | MPI_ERRORS_ARE_FATAL
-| mpi/errors/return | MPI_ERRORS_RETURN
-| mpi/max/processor/name | MPI_MAX_PROCESSOR_NAME
-| mpi/max/error/string | MPI_MAX_ERROR_STRING
-| mpi/char | MPI_CHAR
-| mpi/short | MPI_SHORT
-| mpi/int | MPI_INT
-| mpi/long | MPI_LONG
-| mpi/unsigned/char | MPI_UNSIGNED_CHAR
-| mpi/unsigned/short | MPI_UNSIGNED_SHORT
-| mpi/unsigned | MPI_UNSIGNED
-| mpi/unsigned/long | MPI_UNSIGNED_LONG
-| mpi/float | MPI_FLOAT
-| mpi/double | MPI_DOUBLE
-| mpi/long/double | MPI_LONG_DOUBLE
-| mpi/byte | MPI_BYTE
-| mpi/packed | MPI_PACKED
-| mpi/float/int | MPI_FLOAT_INT
-| mpi/double/int | MPI_DOUBLE_INT
-| mpi/long/int | MPI_LONG_INT
-| mpi/2int | MPI_2INT
-| mpi/short/int | MPI_SHORT_INT
-| mpi/long/double/int | MPI_LONG_DOUBLE_INT
-| mpi/long/long/int | MPI_LONG_LONG_INT
-| mpi/ub | MPI_UB
-| mpi/lb | MPI_LB
-| mpi/comm/world | MPI_COMM_WORLD
-| mpi/comm/self | MPI_COMM_SELF
-| mpi/ident | MPI_IDENT
-| mpi/congruent | MPI_CONGRUENT
-| mpi/similar | MPI_SIMILAR
-| mpi/unequal | MPI_UNEQUAL
-| mpi/tag/ub | MPI_TAG_UB
-| mpi/io | MPI_IO
-| mpi/host | MPI_HOST
-| mpi/wtime/is/global | MPI_WTIME_IS_GLOBAL
-| mpi/max | MPI_MAX
-| mpi/min | MPI_MIN
-| mpi/sum | MPI_SUM
-| mpi/prod | MPI_PROD
-| mpi/maxloc | MPI_MAXLOC
-| mpi/minloc | MPI_MINLOC
-| mpi/band | MPI_BAND
-| mpi/bor | MPI_BOR
-| mpi/bxor | MPI_BXOR
-| mpi/land | MPI_LAND
-| mpi/lor | MPI_LOR
-| mpi/lxor | MPI_LXOR
-| mpi/group/null | MPI_GROUP_NULL
-| mpi/comm/null | MPI_COMM_NULL
-| mpi/datatype/null | MPI_DATATYPE_NULL
-| mpi/request/null | MPI_REQUEST_NULL
-| mpi/op/null | MPI_OP_NULL
-| mpi/errhandler/null | MPI_ERRHANDLER_NULL
-| mpi/group/empty | MPI_GROUP_EMPTY
-| mpi/graph | MPI_GRAPH
-| mpi/cart | MPI_CART
-| mpi/aint | MPI_Aint
-| mpi/status | MPI_Status
-| mpi/group | MPI_Group
-| mpi/comm | MPI_Comm
-| mpi/datatype | MPI_Datatype
-| mpi/request | MPI_Request
-| mpi/op | MPI_Op
-| mpi/copy/function | MPI_Copy_function
-| mpi/delete/function | MPI_Delete_function
-| mpi/handler/function | MPI_Handler_function
-| mpi/user/function | MPI_User_function
-| mpi/init | MPI_Init
-| mpi/comm/size | MPI_Comm_size
-| mpi/comm/rank | MPI_Comm_rank
-| mpi/abort | MPI_Abort
-| mpi/get/processor/name | MPI_Get_processor_name
-| mpi/get/version | MPI_Get_version
-| mpi/initialized | MPI_Initialized
-| mpi/wtime | MPI_Wtime
-| mpi/wtick | MPI_Wtick
-| mpi/finalize | MPI_Finalize
+| Term | Replacement |
+| --- | --- |
+| mpi/success | MPI_SUCCESS |
+| mpi/err/buffer | MPI_ERR_BUFFER |
+| mpi/err/count | MPI_ERR_COUNT |
+| mpi/err/type | MPI_ERR_TYPE |
+| mpi/err/tag | MPI_ERR_TAG |
+| mpi/err/comm | MPI_ERR_COMM |
+| mpi/err/rank | MPI_ERR_RANK |
+| mpi/err/request | MPI_ERR_REQUEST |
+| mpi/err/root | MPI_ERR_ROOT |
+| mpi/err/group | MPI_ERR_GROUP |
+| mpi/err/op | MPI_ERR_OP |
+| mpi/err/topology | MPI_ERR_TOPOLOGY |
+| mpi/err/dims | MPI_ERR_DIMS |
+| mpi/err/arg | MPI_ERR_ARG |
+| mpi/err/unknown | MPI_ERR_UNKNOWN |
+| mpi/err/truncate | MPI_ERR_TRUNCATE |
+| mpi/err/other | MPI_ERR_OTHER |
+| mpi/err/intern | MPI_ERR_INTERN |
+| mpi/pending | MPI_PENDING |
+| mpi/err/in/status | MPI_ERR_IN_STATUS |
+| mpi/err/lastcode | MPI_ERR_LASTCODE |
+| mpi/bottom | MPI_BOTTOM |
+| mpi/proc/null | MPI_PROC_NULL |
+| mpi/any/source | MPI_ANY_SOURCE |
+| mpi/any/tag | MPI_ANY_TAG |
+| mpi/undefined | MPI_UNDEFINED |
+| mpi/bsend/overhead | MPI_BSEND_OVERHEAD |
+| mpi/keyval/invalid | MPI_KEYVAL_INVALID |
+| mpi/errors/are/fatal | MPI_ERRORS_ARE_FATAL |
+| mpi/errors/return | MPI_ERRORS_RETURN |
+| mpi/max/processor/name | MPI_MAX_PROCESSOR_NAME |
+| mpi/max/error/string | MPI_MAX_ERROR_STRING |
+| mpi/char | MPI_CHAR |
+| mpi/short | MPI_SHORT |
+| mpi/int | MPI_INT |
+| mpi/long | MPI_LONG |
+| mpi/unsigned/char | MPI_UNSIGNED_CHAR |
+| mpi/unsigned/short | MPI_UNSIGNED_SHORT |
+| mpi/unsigned | MPI_UNSIGNED |
+| mpi/unsigned/long | MPI_UNSIGNED_LONG |
+| mpi/float | MPI_FLOAT |
+| mpi/double | MPI_DOUBLE |
+| mpi/long/double | MPI_LONG_DOUBLE |
+| mpi/byte | MPI_BYTE |
+| mpi/packed | MPI_PACKED |
+| mpi/float/int | MPI_FLOAT_INT |
+| mpi/double/int | MPI_DOUBLE_INT |
+| mpi/long/int | MPI_LONG_INT |
+| mpi/2int | MPI_2INT |
+| mpi/short/int | MPI_SHORT_INT |
+| mpi/long/double/int | MPI_LONG_DOUBLE_INT |
+| mpi/long/long/int | MPI_LONG_LONG_INT |
+| mpi/ub | MPI_UB |
+| mpi/lb | MPI_LB |
+| mpi/comm/world | MPI_COMM_WORLD |
+| mpi/comm/self | MPI_COMM_SELF |
+| mpi/ident | MPI_IDENT |
+| mpi/congruent | MPI_CONGRUENT |
+| mpi/similar | MPI_SIMILAR |
+| mpi/unequal | MPI_UNEQUAL |
+| mpi/tag/ub | MPI_TAG_UB |
+| mpi/io | MPI_IO |
+| mpi/host | MPI_HOST |
+| mpi/wtime/is/global | MPI_WTIME_IS_GLOBAL |
+| mpi/max | MPI_MAX |
+| mpi/min | MPI_MIN |
+| mpi/sum | MPI_SUM |
+| mpi/prod | MPI_PROD |
+| mpi/maxloc | MPI_MAXLOC |
+| mpi/minloc | MPI_MINLOC |
+| mpi/band | MPI_BAND |
+| mpi/bor | MPI_BOR |
+| mpi/bxor | MPI_BXOR |
+| mpi/land | MPI_LAND |
+| mpi/lor | MPI_LOR |
+| mpi/lxor | MPI_LXOR |
+| mpi/group/null | MPI_GROUP_NULL |
+| mpi/comm/null | MPI_COMM_NULL |
+| mpi/datatype/null | MPI_DATATYPE_NULL |
+| mpi/request/null | MPI_REQUEST_NULL |
+| mpi/op/null | MPI_OP_NULL |
+| mpi/errhandler/null | MPI_ERRHANDLER_NULL |
+| mpi/group/empty | MPI_GROUP_EMPTY |
+| mpi/graph | MPI_GRAPH |
+| mpi/cart | MPI_CART |
+| mpi/aint | MPI_Aint |
+| mpi/status | MPI_Status |
+| mpi/group | MPI_Group |
+| mpi/comm | MPI_Comm |
+| mpi/datatype | MPI_Datatype |
+| mpi/request | MPI_Request |
+| mpi/op | MPI_Op |
+| mpi/copy/function | MPI_Copy_function |
+| mpi/delete/function | MPI_Delete_function |
+| mpi/handler/function | MPI_Handler_function |
+| mpi/user/function | MPI_User_function |
+| mpi/init | MPI_Init |
+| mpi/comm/size | MPI_Comm_size |
+| mpi/comm/rank | MPI_Comm_rank |
+| mpi/abort | MPI_Abort |
+| mpi/get/processor/name | MPI_Get_processor_name |
+| mpi/get/version | MPI_Get_version |
+| mpi/initialized | MPI_Initialized |
+| mpi/wtime | MPI_Wtime |
+| mpi/wtick | MPI_Wtick |
+| mpi/finalize | MPI_Finalize |
 
 ## Philosophy, Terminology, and Semiotics
 
