@@ -24,10 +24,10 @@ But why?
 
 Because __LISP__ is expressive and __C__ is fast and I wanted the best of both worlds is the short answer. The longer answer has something to do with macros. But instead of immediately boring you with that, I'll answer what you really want to know:
 
-## Why me?
+## Why Should I Care?
 
-First let's discuss if you *can* use it. Not to be elitist (I wish everyone would use this tool), but you **must** know both **c** and **LISP** fairly well to be able to use __LISP__/__c__.
-x	
+First let's discuss if you *can* use it. Not to be elitist (I wish everyone would use this tool), but you **must** know both **C** and **LISP** fairly well to be able to use __LISP__/__c__.
+
 Suppose, however, that you do already know both __LISP__ and __C__ pretty well. You might want to use __LISP__/__c__ because it features access to __LISP__ to write __C__ code obth implicitly and explicity. You might also want to use it if you like writing **CUDA** code, because it has built-in support for **CUDA** as well.
 
 But really, to see why you might like to use __LISP__/__c__, check out a few examples, and feel free to skip around a little.
@@ -175,7 +175,7 @@ Next we write the thread function:
 			(+ 1 i))                         ; i+1);
 		(return null))                       ; return NULL;}
 
-Hopefully this is fairly self-explanatory. Finally, we write the main functino:
+Hopefully this is fairly self-explanatory. Finally, we write the main function:
 
 	(define !nthreads 12) ;; #define NTHREADS 12
 	(main
@@ -494,7 +494,7 @@ This calls the **CUDA** function with the name *function-name* with the specific
 This strings together all the values with spaces between them and formats them as a `cstring`. Like `(str a b "cDe")` compiles to `"a b cDe"`.
 
 ### `(char` value `)`
-Formats *value* as a `char`
+Formats *value* as a `char` For example `(char x)` compiles to `'x'`, `(char \\n)` compiles to `'\n'`, and `(char "X")` compiles to `X`.
 
 ### `(cast` value type {types}* `)`
 This casts *value* as *type*, and if *types* are specified, then if casts them as those too, but in "reverse" order. For example, `(cast x abc)` compiles to (after code is cleaned up) `(abc)x`, and `(cast x abc def)` compiles to `(def)(abc)x`,
@@ -505,9 +505,111 @@ A bunch of variables, comma-separated, with the arguments to each one supplied b
 ### `(varlist` ... `)`
 Uses the same syntax as `vars`, but puts semicolons between the variable delcarations.
 
-### `(struct` struct-name {variables}* `)`
-Creates a structure.
+### `(struct` struct-name ({variables}*) `)`
+Creates a structure named *struct-name* with variables *variables*. For example:
 
+	(struct foo (
+		bar
+		(baz qux)
+		((pt xyzzy) foobar)))
+
+Compiles to
+
+	struct foo {
+		int bar;
+		qux baz;
+		foobar *xyzzy;
+	};
+
+### `(block` linelist {bracket? (default = t)}? `)`
+This creates a **C** block structure. If *bracket* is set to `nil`, then it has no brackets around it. This serves mainly as a way to consolidate elements generated for `template` recipes.
+
+### `(func` name type variables {body}* `)`
+This creates a function with name *name, type *type*, variables *variables* (as processed through the `vars` facility), and with code inside *body*. If *body* is not specified, then there is no code inside the function and it is treated as a function prototype. If variables is set to `()` or `nil`, then the variable list will be compiled in **C** as `()`. There is currently no facility for a `void` specification, but that will change shortly. <sub><sup>**TODO**</sup></sub>
+
+### `(cuda/global` ... `)`
+Uses the same syntax as `func`, but appends `__global__` to the beginning.
+
+### `(cuda/device` ... `)`
+Uses the same syntax as `func`, but appends `__device__` to the beginning.
+
+### `(funcarg` name type variables `)`
+This creates a function argument with name *name*, type *type*, and variables *variables*. For example, `funcarg foo bar (int (arg* float)))` compiles to `bar(*foo)(int,float*)`.
+
+### `(return` value `)`
+Creates a `return` statement that returns *value*.
+
+### `(typedef` old-type new-type `)`
+Creates a simple typedef statement. For example, `(typedef (arg* int) intptr)` compiles to `typedef int* intptr;`
+
+### `(enum` enum-name {specs}* `)`
+This creates an enum with the name *enum-name* and specifications *specs*. For example, `(enum a (b c d))` compiles to `enum a{b, c, d}`.
+
+### `(h-file` name `)`
+Outputs name.h.
+
+### `(include` name {`local:` local (default = nil)}? `)`
+Includes a .c or .h file with the name *name*. If local is spcified, then `"` are used instead of `<>`.
+
+### `(import` filename `)`
+Imports a .cl file with name *fllename* (if *filename* is not a string, then `.cl` is appended). This is the **LISP**/**c** version of `#include`. So far, it does not keep track of directories, so all files included, including files included in files included must be in the same directory. <sup><sub>**TODO**</sub></sup>
+
+### `(macro` macro-name {macro-args}* `)`
+This creates a simple funcall-type structure, but is meant to be used with `define`. It was defined early on in devlopment and may be phased out.
+
+### `(define` definer deinee `)`
+Makes a `#define` statement in **C** with *definer* being the dirst argument and *definee* being the second argument.
+
+### `(paren` term `)`
+Puts parentheses around *term*.
+
+### `(comment` {comments}* `)`
+*Comments*, separated by spaces, are put into a comment form like the following:
+
+THe following:
+
+	(comment this is "A Comment")
+	(comment s this is "A Comment")
+
+compile to (respectively):
+
+	/*********************/
+	/* this is A Comment */
+	/*********************/
+	
+	/* this is A Comment */
+
+The reason why the second comment was shorter was because it began with an `s`.
+
+### `(header` name {`local:` local (default = nil)}? `)`
+Same as `include`, but automatically adds a `.h` to the end of *name*.
+
+### `(headers` argument-lists `)`
+Each argument in the argument list can be an atom, which will be assumed to be a list in the final phase of processing. For exmaple,
+
+	(headers foo (bar :local t))
+	
+compiles to the **C** code
+
+	#include <foo.h>
+	#include "bar.h"
+
+This is useful if you have a whole slew of things to include. It's also worth noting that something like `(headers arpa/inet)` will compile to `#include <arpa/inet.h>`.
+
+### `(lisp` lisp-code `)`
+Runs **LISP** code directly. For very low-level maintenance. ***DO NOT USE UNLESS YOU KNOW WHAT YOU ARE DOING***.
+
+### `(lispmacro` name arglist {body}* `)`
+This creates a function in **LISP** directly with a name callable by **LISP**/**c** code as *name*. Again, ***THIS IS ONLY TO BE TOUCHED BY PEOPLE WHO KNOW WHAT THEY'RE DOING. YOU CAN SCREW UP THE WHOLE ENGINE.***
+
+### `(template` name arguments form `)`
+Creates a new function with the name *name* with arguments *arguments* and form *form*. Examples of `template` code have been given. It's really quite a simple function.
+
+### `(templates` name arguments form `)`
+This does not quite work as well as it should yet <sup><sub>**TODO**</sub></sup> It's meant to work on lists of arguments.
+
+### `(cuda/shared` variable `)`
+Creates a cuda `__shared__` variable.
 
 ## What's With the Slashes?
 
