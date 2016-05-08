@@ -27,7 +27,7 @@ Because __LISP__ is expressive and __C__ is fast and I wanted the best of both w
 ## Why me?
 
 First let's discuss if you *can* use it. Not to be elitist (I wish everyone would use this tool), but you **must** know both **c** and **LISP** fairly well to be able to use __LISP__/__c__.
-
+x	
 Suppose, however, that you do already know both __LISP__ and __C__ pretty well. You might want to use __LISP__/__c__ because it features access to __LISP__ to write __C__ code obth implicitly and explicity. You might also want to use it if you like writing **CUDA** code, because it has built-in support for **CUDA** as well.
 
 But really, to see why you might like to use __LISP__/__c__, check out a few examples, and feel free to skip around a little.
@@ -414,7 +414,104 @@ Compiles to the example program:
 	   printf("Number of tasks= %d My rank = %d Running on %s\n",numtasks,rank,hostname);
 	   MPI_Finalize();
 	};
-	
+
+## Synonyms
+
+There are a lot of synonyms present in **LISP**/**c**. For example, you may type `integer` instead of `int` or `integer+` instead of `long int`. A full list of synonyms can be found in the source code for **LISP**/**c**.
+
+## A List of Functions
+
+These are functions which exist within **LISP**/**c**:
+
+### `(arr-decl` val<sub>1</sub> ... val<sub>n</sub> `)`
+This function declares a literal array of values. It compiles to the **C** code `{`val<sub>1</sub>`,`...`,`val<sub>n</sub>`)`.
+
+### `(sym/add` val<sub>1</sub> ... val<sub>n</sub> `)`
+This creates a new identifier that is an aggregate of the individual identifiers, as they have been compiled. This works well in `template` statements.
+
+### `(typ* ` type {n (default = 1)}? `)
+
+This creates a pointer type. For example, `(typ* integer)` compiles to `int*`, and `(typ* char 4)` compiles to `char****`.
+
+### `(var` var {type (default = int)}? {init}? {modifiers}* `)`
+Declares a variable. If init is specified, it compiles to a declaration of that variable with that type.
+
+### `(const` ... `)`
+Uses the same arguments as `var`, but puts a `const` at the beginning automatically. Equivalent to `(var ... const)`.
+
+### `(syn` term synonym `)`
+Looks at both *term* and *synonym* and declares that any instance of *term* by itself will compile to *synonym*.
+
+### `(unsyn` term `)`
+Declares that *term*, if it is supposed to compile to any synonym, will no longer do so.
+
+###  `(progn` lines `)`
+This just puts a bunch of lines in the slot where one thing should go. Useful in if-else statements.
+
+### `(?` test if-true if-false `)`
+This compiles to a `?:` statement. It compiles directly to `(`test`)?:(`if-true`):(`if-false`)`,
+
+### `(if` test if-true if-false `)`
+Like the above, but compiles to an if statement.
+
+### `(cond` {condition if-true}* `)`
+Works like the `cond` statement in **LISP**, but for **C**. Does this with a series of if-else statements.
+
+### `(main` {statements}* `)`
+Creates the main function.
+
+### `(for ` start continue-test step {statements}* `)`
+This compiles to a `for` statement in **C**.
+
+### `(while` test {statements}* `)`
+Creates a `while` statement.
+
+### `(do-while` test {statements}* `)`
+Creates a `do...while` statement, but puts the test at the end where it belongs.
+
+### `(switch` variable {value if-equal {break}?}* `)`
+This creates a switch statement. There is no special treatment of the `default` clause. If any of the tuples cntaining the value and the if-equal statement has a third argument (which it does not have to), and that value is anything other than `nil`, it puts a `break;` statement into the compiled **C**.
+
+### `(ptr` x {n (default = 1)}? `)`
+This dereferences `x` `n` times. For example `(ptr a 2)` compiles to `**(a)`.
+
+### `(pt` ... `)`
+This uses the same syntax as `ptr` does, but it does not put parentheses around the *x* in question.
+
+### `(nth` value index {indices}* `)`
+This gets the index<sup>th</sup> reference of value. For example, `(nth a b)` compiles to `(a)[b]`, and `(nth a b c)` compiles to `(a)[b][c]`.
+
+### `(arr` ... `)`
+This uses the same syntax as `nth`, but does not put parenthesis around the *value& in question.
+
+### `(call` function-name {arguments}* `)`
+This simply calls function-name with arguments.
+
+### `(cuda/call` function-name spec-list {arguments}* `)`
+This calls the **CUDA** function with the name *function-name* with the specifications *spec-list*. For exmaple, `(cuda/call foo (16 32) a b c)` compiles to `foo<<<16,32>>>(a,b,c)`.
+
+### `(str` {values}* `)`
+This strings together all the values with spaces between them and formats them as a `cstring`. Like `(str a b "cDe")` compiles to `"a b cDe"`.
+
+### `(char` value `)`
+Formats *value* as a `char`
+
+### `(cast` value type {types}* `)`
+This casts *value* as *type*, and if *types* are specified, then if casts them as those too, but in "reverse" order. For example, `(cast x abc)` compiles to (after code is cleaned up) `(abc)x`, and `(cast x abc def)` compiles to `(def)(abc)x`,
+
+### `(vars` specs-ilsts `)`
+A bunch of variables, comma-separated, with the arguments to each one supplied by an entry in *specs-lists*.
+
+### `(varlist` ... `)`
+Uses the same syntax as `vars`, but puts semicolons between the variable delcarations.
+
+### `(struct` struct-name {variables}* `)`
+Creates a structure.
+
+
+## What's With the Slashes?
+
+You'll notice that `mpi/comm/size` compiles to `MPI_Comm_size` and that `cuda/dev->host` compiles to `cudaMemcpyDeviceToHost`. This is because external libraries are given support in this manner (with slashes).
 
 ## Philosophy, Terminology, and Semiotics
 
