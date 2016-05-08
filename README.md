@@ -4,6 +4,12 @@
 
 To install, simply go into the directory that you downloaded everything into, run `clisp`, and type `(load "c.lisp")`. To compile a `cl` file into a `c` file, type `(c-cl-file source.cl dest.c)`. To compile and run a `cl` file, type in `(compile-and-run-cl-file file.cl)`. More documentation on this part to come. <sup><sub>TODO</sub></sup>
 
+## Resources
+
+To learn **C**, I recommend *The C Programming Language* by **Brian W. Kernighan** (ISBN-10 0131103628, ISBN-13 978-0131103627). TO learn **LISP**, I recommend *Practical Common Lisp* by **Peter Seibel**. This can be found either [here](www.gigamonkeys.com/book/) or as a hard copy (ISBN-10 1590592395, ISBN-13 978-1590592397). Also, it is currently required that you use **CLISP** to run the code here.. This will change <sup><sub>**TODO**</sub></sup>.
+
+To learn **CUDA**, I recommend the resources found [here](https://developer.nvidia.com/cuda-education-training), and to learn **MPI**, I recommend the resources found [here](http://mpitutorial.com/tutorials/).
+
 ## Introduction
 **LISP**/**c** is a powerful macrolanguage for **C**. It basically turns this:
 
@@ -97,7 +103,11 @@ There are two ways that functions can be called. Suppose we want to know the val
 
 or
 
+### The @ Notation
+
     (@foo 2 3 4)
+
+This is the same thing as `(call foo 2 3 4)`. This is used to greatly simplify function calls. Use this whenever possible, since nobody wants to wade through a bunch of `call` statements. `call` is mainly useful for `template` statements.
 
 ### Thing Names
 
