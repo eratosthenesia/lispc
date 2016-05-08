@@ -797,6 +797,7 @@ You'll notice that `mpi/comm/size` compiles to `MPI_Comm_size` and that `cuda/de
 
 | Term | Replacement |
 | --- | --- |
+| 
 | mpi/success | MPI_SUCCESS |
 | mpi/err/buffer | MPI_ERR_BUFFER |
 | mpi/err/count | MPI_ERR_COUNT |
@@ -884,6 +885,8 @@ You'll notice that `mpi/comm/size` compiles to `MPI_Comm_size` and that `cuda/de
 | mpi/cart | MPI_CART |
 | mpi/aint | MPI_Aint |
 | mpi/status | MPI_Status |
+| mpi/status/ignore | MPI_STATUS_IGNORE |
+| mpi/statuses/ignore | MPI_STATUSES_IGNORE |
 | mpi/group | MPI_Group |
 | mpi/comm | MPI_Comm |
 | mpi/datatype | MPI_Datatype |

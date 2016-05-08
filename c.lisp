@@ -581,6 +581,8 @@
 'mpi/datatype           "MPI_Datatype"
 'mpi/request            "MPI_Request"
 'mpi/op                 "MPI_Op"
+'mpi/status/ignore      "MPI_STATUS_IGNORE"
+'mpi/statuses/ignore    "MPI_STATUSES_IGNORE"
 'mpi/copy/function      "MPI_Copy_function"
 'mpi/delete/function    "MPI_Delete_function"
 'mpi/handler/function   "MPI_Handler_function"
