@@ -1,5 +1,9 @@
 # __LISP__/__c__
 
+## Installing
+
+To install, simply go into the directory that you downloaded everything into, run `clisp`, and type `(load "lisp.c")`. To compile a `cl` file into a `c` file, type `(c-cl-file source.cl dest.c)`. To compile and run a `cl` file, type in `(compile-and-run-cl-file file.cl)`. More documentation on this part to come. <sup><sub>TODO</sub></sup>
+
 ## Introduction
 **LISP**/**c** is a powerful macrolanguage for **C**. It basically turns this:
 
