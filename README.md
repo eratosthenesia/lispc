@@ -598,7 +598,7 @@ Imports a .cl file with name *fllename* (if *filename* is not a string, then `.c
 ### `(macro` macro-name {macro-args}* `)`
 This creates a simple funcall-type structure, but is meant to be used with `define`. It was defined early on in devlopment and may be phased out.
 
-### `(define` definer deifnee `)`
+### `(define` definer definee `)`
 Makes a `#define` statement in **C** with *definer* being the dirst argument and *definee* being the second argument.
 
 ### `(pragma` {statements}* `)`
