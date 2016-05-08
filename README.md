@@ -127,7 +127,7 @@ You can test out the engine by either loading in a file using the `cwf` command 
              bar
              ((pt baz) float) )) qux))
 It will result in the following (or similar):
-
+I
     typedef
     struct foo{
     int bar;
@@ -143,6 +143,33 @@ This, cleaned up, is:
 Future versions of **LISP**/**c** will have nicer-looking output **C** code.
 
 The way that **LISP**/**c** works is sort of tricky. It utilizes a lot of string manipulation and interpretation. It doesn't need to be insanely fast, though, because it's just dealing with code; the compiled result will not suffer from any slowness.
+
+## Top-Level Functions
+
+These are the functions that are to be run directly from your **LISP** REPL environment.
+
+### `(cwf` filename`)`
+Prints the compiled **C** file from the *filename* containing your **LISP**/**c** code.
+
+### `(compile-cl-file` file-in ...arguments... `)`
+This uses **gcc** to compile your file (at *file-in*). It takes a number of keyword arguments (expressed as `:keyword argument`):
+
+| Keyword | Argument |
+| --- | --- |
+| fileout | executable output |
+| tags | tags for compilation |
+| libs | libraries for compilation |
+| c-file | output **C** file |
+| cc | compiler to use |
+
+### `(compile-and-run-cl-file` ... `)`
+Uses the same syntax as `compile-cl-file`.
+
+### `(c-cl-file file-in c-file `)`
+Compiles **LISP**/**c** code into **C** code from *file-in* to *c-file*.
+
+### Other conventions
+When a **LISP**/**c** function such as `while` is called, it's actually calling a lisp function called `while-c`. This may change in the future, but is done presently for convenience. <sup><sub>**TODO**</sub></sup>
 
 ## An Example: Multithreading
 
@@ -624,6 +651,90 @@ This does not quite work as well as it should yet <sup><sub>**TODO**</sub></sup>
 
 ### `(cuda/shared` variable `)`
 Creates a cuda `__shared__` variable.
+
+## Binomial Operators
+
+These include `+`, `-`, and the like. Each of these has a number of synonyms: These can take more than two arguments. For example,`(- a b c)` will come out to (after cleaning up the code) `(a-b)-c` or `a-b-c`. These are left or right reductive depending on whether they are in **C** or not. 
+
+### `=`
+This can be accessed through `=` `set` `let` `<-` and `:=`.
+### `!=`
+This can be accessed through `!=` `neq` `diff` and `different`.
+### `==`
+This can be accessed through `==` `eq` and `same`.
+### `<`
+This can be accessed through `<` and `lt`.
+### `>`
+This can be accessed through `>` and `gt`.
+### `<=`
+This can be accessed through `<=` `leq` and `le`.
+### `>=`
+This can be accessed through `>=` `geq` and `ge`.
+### `&&`
+This can be accessed through `&&` `and` `et` `und` and `y`.
+### `&`
+This can be accessed through `&` `bit-and` `band` `.and` `bit-et` `bet` `.et` `bit-und` `bund` `.und` `bit-y` `through` `.y` and ``.
+### `&=`
+This can be accessed through `&=` `&-eq` `bit-and-eq` `band-eq` `.and-eq` `bit-et-eq` `bet-eq` `.et-eq` `bit-und-eq` `bund-eq` `.und-eq` `bit-y-eq` `through-eq` `.y-eq` `&=` `bit-and=` `band=` `.and=` `bit-et=` `bet=` `.et=` `bit-und=` `bund=` `.und=` `bit-y=` `through=` `.y=` and ``.
+### `||`
+This can be accessed through `or` `uel` `oder` and `o`.
+### `|`
+This can be accessed through `bit-or` `.or` `bor` `bit-uel` `.uel` `buel` `bit-oder` `.oder` `boder` `bit-o` `.o` and `bo`.
+### `|=`
+This can be accessed through `bit-or-eq` `.or-eq` `bor-eq` `bit-uel-eq` `.uel-eq` `buel-eq` `bit-oder-eq` `.oder-eq` `boder-eq` `bit-o-eq` `.o-eq` `bo-eq` `bit-or=` `.or=` `bor=` `bit-uel=` `.uel=` `buel=` `bit-oder=` `.oder=` `boder=` `bit-o=` `.o=` and `bo=`.
+### `+`
+This can be accessed through `+` `plus` `add` and `sum`.
+### `+=`
+This can be accessed through `+=` `plus-eq` `add-eq` `sum-eq` `plus=` `add=` and `sum=`.
+### `-`
+This can be accessed through `-` `minus` `subtract` and `sub`.
+### `-=`
+This can be accessed through `-=` `minus-eq` `subtract-eq` `sub-eq` `minus=` `subtract=` and `sub=`.
+### `*`
+This can be accessed through `*` `times` `product` `mul` and `multiply`.
+### `*=`
+This can be accessed through `*=` `times-eq` `product-eq` `mul-eq` `multiply-eq` `times=` `product=` `mul=` and `multiply=`.
+### `/`
+This can be accessed through `/` `quotient` `ratio` `div` and `divide`.
+### `/=`
+This can be accessed through `/=` `quotient-eq` `ratio-eq` `div-eq` `divide-eq` `quotient=` `ratio=` `div=` and `divide=`.
+### `%`
+This can be accessed through `%` `modulo` `mod` and `remainder`.
+### `%=`
+This can be accessed through `%-eq` `modulo-eq` `mod-eq` `remainder-eq` `%=` `modulo=` `mod=` and `remainder=`.
+### `<<`
+This can be accessed through `<<` `l-shift` `shift-left` and `shl`.
+### `<<=`
+This can be accessed through `<<=` `l-shift-eq` `shift-left-eq` `shl-eq` `l-shift=` `shift-left=` and `shl=`.
+### `>>`
+This can be accessed through `>>` `r-shift` `shift-right` and `shr`.
+### `>>=`
+This can be accessed through `>>=` `r-shift-eq` `shift-right-eq` `shr-eq` `>>=` `r-shift=` `shift-right=` and `shr=`.
+### `->`
+This can be accessed through `->` and `slot`.
+### `.`
+This can be accessed through `mem` and `.>`.
+
+## Monomial Operators
+
+These are operators that take in exactly one argument.
+
+### `++` (pre)
+This is the pre-increment (++x) operator. It can be accessed through `++` `inc` `+inc` `incr` `pre++` `+1` and `++n`.
+### `++` (post)
+This is the post-increment (x++) operator. It can be accessed through `+++` `pinc` `inc+` `pincr` `post++` `1+` and `n++`.
+### `--` (pre)
+This is the pre-decrement (--x) operator. It can be accessed through `--` `dec` `-dec` `decr` `pre--` `-1` and `--n`.
+### `--` (post)
+This is the post-decrement (x--) operator. It can be accessed through `---` `pdec` `dec-` `pdecr` `post--` `1-` and `n--`.
+### `-`
+This is the negation (-x) operator. It can be accessed through `neg`.
+### `&`
+This is the address-of (&x) operator. It can be accessed through `addr` `memloc` and `loc`.
+### `!`
+This is the not (!x) operator. It can be accessed through `!` `not` `un` `a` and `flip`.
+### `~`
+This is the bit-not (~x) operator. It can be accessed through `~` `bit-not` `bit-un` `bit-a` and `bit-flip`.
 
 ## What's With the Slashes?
 
