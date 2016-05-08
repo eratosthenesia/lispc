@@ -261,7 +261,7 @@
         (>>  :r t :nyms (>> r-shift shift-right shr))
         (>>= :l t :nyms (>>= r-shift-eq shift-right-eq shr-eq >>= r-shift= shift-right= shr=))
         (->  :nparen t :nyms (-> slot))
-        (#\. :nrp t :nym mem))
+        (#\. :nrp t :nym mem) (#\. :nrp t :nym .>)) ;; fix this bug
 
 (preposts (++ :post nil :nyms (++  inc +inc incr pre++ +1 ++n))
           (++ :post t   :nyms (+++ pinc inc+ pincr post++ 1+ n++))
@@ -302,7 +302,7 @@
      (cofy test)
      (cofy ifyes)
      (format nil "if(~a) {~%   ~a;~%}~a"  test ifyes (if ifno (format nil "else{~%   ~a;~%}"(cof ifno)) "")))
- (cond (pairs)
+ (cond (&rest pairs)
        (format nil "if(~a) {~{~%  ~a;~}~%}~{~a~}" (cof (caar pairs)) (mapcar #'cof (f/list (cadar pairs)))
 	       (mapcar #'(lambda (pair) (format nil "else if(~a){~{~%   ~a;~}~%}"
 						(cof (car pair)) (mapcar #'cof (f/list (cadr pair))))) (cdr pairs))))
@@ -332,7 +332,7 @@
       (format nil "~{~a~}(~a)" (loop for i from 1 to n collect #\*) (cof x)))
  (pt (x &optional (n 1))
      (format nil "~{~a~}~a" (loop for i from 1 to n collect #\*) (cof x)))
- (nth (x &optional (n 0) &rest nils)
+ (nth (x &optional (n 0) &rest ns)
       (format nil "(~a)[~a]~a" (cof x) (cof n)
 	      (if ns
 		  (format nil "~{[~a]~}" (mapcar #'cof ns)) "")))
@@ -347,7 +347,7 @@
 	    (format nil "~a<<<~{~a~^,~}>>>(~{~a~^,~})" nym ijk (mapcar #'cof args)))
  (str (&rest x)
       (cofsy x)
-      (format nil "\"~{~a~}\"" x))
+      (format nil "\"~{~a~^ ~}\"" x))
  (char (x)
       (cofy x)
       (format nil "'~a'" x))
@@ -364,10 +364,10 @@
        (format nil (format nil "~~{~~a~~^~(~a~a~)~~}" inter (if newline #\Newline "")) x))
  (varlist (args)
           (vars-c args #\;))
-  (struct (nym &optional vars)
+ (struct (nym &optional vars)
 	 (cofy nym)
 	 (if vars
-	     (format nil "struct ~a{~a;}" nym (vars-c vars #\;))
+	     (format nil "struct ~a{~a;~%  }" nym (vars-c vars #\;))
 	     (format nil "struct ~a" nym)))
  (block (lines &optional (bracket t))
    (format nil "~a~%~{   ~a~^~(;~%~)~};~%~a" (if bracket #\{ "") (mapcar #'cof (f/list lines)) (if bracket #\} "") ))
@@ -377,7 +377,9 @@
        (format nil "~a ~a(~a)~a" typ nym (vars-c vars #\, nil)
 	       (if body (block-c body) "")))
  (cuda/global (&rest args)
-	      (format nil "__global__ ~a" (apply #'func-c args)))
+        (format nil "__global__ ~a" (apply #'func-c args)))
+ (cuda/device (&rest args)
+        (format nil "__device__ ~a" (apply #'func-c args)))
  (funcarg (nym typ varforms)
 	  (cofy nym)
     (cofy typ)
@@ -393,7 +395,7 @@
  (enum (nym mems)
        (cofy nym)
        (cofsy mems)
-       (format nil "enum ~a{~{~a~}};~%" nym mems))
+       (format nil "enum ~a{~{~a~^~(, ~)~}};~%" nym mems))
  (h-file (nym)
 	 (cofy nym)
 	 (format nil "~a.h" nym))
@@ -457,30 +459,34 @@
 
 ;;; CUDA STUFF
 (macropairs csyn
-'cuda/malloc     "cudaMalloc"
-'cuda/memcpy     "cudaMemcpy"
-'cuda/free       "cudaFree"
-'cuda/host->dev  "cudaMemcpyHostToDevice"
-'cuda/dev->host  "cudaMemcpyDeviceToHost"
-'cuda/dev/count  "cudaDeviceCount"
-'cuda/dev/set    "cudaSetDevice"
-'cuda/dev/get    "cudaGetDevice"
-'cuda/dev/props  "cudaDeviceProperties"
-'cuda/sync       "__syncthreads"
-'block/idx       "blockIdx"
-'block/idx/x     "blockIdx.x"
-'block/idx/y     "blockIdx.y"
-'block/idx/z     "blockIdx.z"
-'thread/idx      "threadIdx"
-'thread/idx/x    "threadIdx.x"
-'thread/idx/y    "threadIdx.y"
-'thread/idx/z    "threadIdx.z"
-'block/dim       "blockDim"
-'block/dim/x     "blockDim.x"
-'block/dim/y     "blockDim.y"
-'block/dim/z     "blockDim.z"
-'dim/block       "dimBlock"
-'dim/grid        "dimGrid"
+'cuda/malloc    "cudaMalloc"
+'cuda/memcpy    "cudaMemcpy"
+'cuda/free      "cudaFree"
+'cuda/host->dev "cudaMemcpyHostToDevice"
+'cuda/dev->host "cudaMemcpyDeviceToHost"
+'cuda/dev/count "cudaDeviceCount"
+'cuda/dev/set   "cudaSetDevice"
+'cuda/dev/get   "cudaGetDevice"
+'cuda/dev/props "cudaDeviceProperties"
+'cuda/sync      "__syncthreads"
+'block/idx      "blockIdx"
+'block/idx/x    "blockIdx.x"
+'block/idx/y    "blockIdx.y"
+'block/idx/z    "blockIdx.z"
+'thread/idx     "threadIdx"
+'thread/idx/x   "threadIdx.x"
+'thread/idx/y   "threadIdx.y"
+'thread/idx/z   "threadIdx.z"
+'block/dim      "blockDim"
+'block/dim/x    "blockDim.x"
+'block/dim/y    "blockDim.y"
+'block/dim/z    "blockDim.z"
+'grid/dim       "gridDim"
+'grid/dim/x     "gridDim.x"
+'grid/dim/y     "gridDim.y"
+'grid/dim/z     "gridDim.z"
+'dim/block      "dimBlock"
+'dim/grid       "dimGrid"
 
 ;; MPI STUFF
 'mpi/success            "MPI_SUCCESS"
