@@ -462,6 +462,8 @@ There are a lot of synonyms present in **LISP**/**c**. For example, you may type
 
 ## A List of Functions
 
+For your convenience, the full list (so far) of functions defined (*and* documented) in **LISP**/**c** are `?`, `arr`, `arr-decl`, `block`, `call`, `cast`, `char`, `comment`, `cond`, `const`, `cuda/call`, `cuda/device`, `cuda/global`, `cuda/shared`, `define`, `do-while`, `enum`, `for`, `func`, `funcarg`, `h-file`, `header`, `headers`, `if`, `import`, `include`, `lisp`, `lispmacro`, `macro`, `main`, `nth`, `paren`, `pragma`, `progn`, `pt`, `ptr`, `return`, `str`, `struct`, `switch`, `sym/add`, `syn`, `template`, `templates`, `typ*`, `typedef`, `unsyn`, `var`, `varlist`, `vars`, and `while`.
+
 These are functions which exist within **LISP**/**c**:
 
 ### `(arr-decl` val<sub>1</sub> ... val<sub>n</sub> `)`
