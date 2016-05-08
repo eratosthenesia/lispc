@@ -113,22 +113,22 @@ The main file for interacting with __LISP__/__c__ right now is just using __CLIS
 
 You can test out the engine by either loading in a file using the `cwf` command and typing `(cwf "example.cl")`. What you'll see is either an error (because of syntax) or the resultant **C** code. If you don't have a file that you can experiment with yet, try typing the following:
 
-	 (c '(typedef (struct foo (
-			 bar
-			 ((pt baz) float) )) qux))
+     (c '(typedef (struct foo (
+             bar
+             ((pt baz) float) )) qux))
 It will result in the following (or similar):
 
-	typedef
-	struct foo{
-	int bar;
-	float *baz;} qux;
+    typedef
+    struct foo{
+    int bar;
+    float *baz;} qux;
 
 This, cleaned up, is:
 
-	typedef struct foo {
-		int bar;
-		float *baz;
-	} qux;
+    typedef struct foo {
+        int bar;
+        float *baz;
+    } qux;
 
 Future versions of **LISP**/**c** will have nicer-looking output **C** code.
 
@@ -137,287 +137,287 @@ The way that **LISP**/**c** works is sort of tricky. It utilizes a lot of string
 ## An Example: Multithreading
 
 Suppose you want to do some threading using `pthreads`. You'd start with the headers obviously:
-	
-	(headers stdio stdlib string pthread)
-	
+    
+    (headers stdio stdlib string pthread)
+    
 Not all of these are required, but I included all of them to show that you can. It compiles to the following:
 
-	#include <stdio.h>
-	#include <stdlib.h>
-	#include <string.h>
-	#include <pthread.h>
+    #include <stdio.h>
+    #include <stdlib.h>
+    #include <string.h>
+    #include <pthread.h>
 
 Next, we know that we're going to want to create and then join a bunch of threads using a `for` structure that is almost the same in both cases. Rather than have code duplication on our consciousnesses, we can write a `template` to take care of this for us:
 
-	(TEMPLATE Loop-N (n v maxv body) ... )
+    (TEMPLATE Loop-N (n v maxv body) ... )
 
 We'll finish this in a moment. I changed up the capitalization again just to make it crystal clear that *that is a thing you can do and must be aware of*. Here, `n` will be the number of iterations, `v` will be the variable that we're keeping track with, `maxv` will be a temporary variable that we store `n` in (so that if we need to calculate `n` we're not doing it every time), and `body` is the body of the `for` loop.
 
 FInishing up the function, we yield:
 
-	(TEMPLATE Loop-N (n v maxv body)
-		(block (
-			(var v    Integer 0) ;; Integer is a synonym for "int"
-			(var maxv Integer n)
-			(for () (< v maxv) (++ v)
-				body))))
-				
+    (TEMPLATE Loop-N (n v maxv body)
+        (block (
+            (var v    Integer 0) ;; Integer is a synonym for "int"
+            (var maxv Integer n)
+            (for () (< v maxv) (++ v)
+                body))))
+                
 You'll notice that `Integer` is being used in lieu of "int". Next we're going to use templates instead of macros to convert integers to voids and vice versa:
 
-	(template void<-int (x) (cast x size-t (typ* void))))
-	(template int<-void (x) (cast x size-t int))
+    (template void<-int (x) (cast x size-t (typ* void))))
+    (template int<-void (x) (cast x size-t int))
 
 Here `(typ* void)` expands to `void*`. Basically this converts between `int` and `void*`. The reason why I chose to use a template instead of a **C** macro is because of freedom of notation; I wanted to use the arrows.
 
 Next we write the thread function:
 
-	(func (pt threadfunc) void               ; void *threadfunc
-		( ((pt x) void) )                    ; (void *x) {
-		(var i int (int<-void x))            ; int i = (int)(size_t)x;
-		(@printf                             ; printf(
-			(str "Hello from thread %d\\n")  ; "Hello from thread %d",
-			(+ 1 i))                         ; i+1);
-		(return null))                       ; return NULL;}
+    (func (pt threadfunc) void               ; void *threadfunc
+        ( ((pt x) void) )                    ; (void *x) {
+        (var i int (int<-void x))            ; int i = (int)(size_t)x;
+        (@printf                             ; printf(
+            (str "Hello from thread %d\\n")  ; "Hello from thread %d",
+            (+ 1 i))                         ; i+1);
+        (return null))                       ; return NULL;}
 
 Hopefully this is fairly self-explanatory. Finally, we write the main function:
 
-	(define !nthreads 12) ;; #define NTHREADS 12
-	(main
-		(var (arr threads !nthreads) pthread-t)
-		;; pthread-t threads[NTHREADS];
-		(loop-n !nthreads i maxi    ;; loop for i from 1 to NTHREADS...
-			(@pthread-create ;; pthread_create(
-				(addr ([]threads i)) ;; &threads[i],
-				null                 ;; NULL,
-				(addr threadfunc)    ;; &threadfunc,
-				(void<-int i)))      ;; (void*)(size_t)i);
-		(loop-n !nthreads i maxi    ;; loop for i from 1 to NTHREADS
-			(@pthread-join (nth threads i) null))
-			;; pthread_join(threads[i], NULL);
-		(return 0)) ;; return 0;}
+    (define !nthreads 12) ;; #define NTHREADS 12
+    (main
+        (var (arr threads !nthreads) pthread-t)
+        ;; pthread-t threads[NTHREADS];
+        (loop-n !nthreads i maxi    ;; loop for i from 1 to NTHREADS...
+            (@pthread-create ;; pthread_create(
+                (addr ([]threads i)) ;; &threads[i],
+                null                 ;; NULL,
+                (addr threadfunc)    ;; &threadfunc,
+                (void<-int i)))      ;; (void*)(size_t)i);
+        (loop-n !nthreads i maxi    ;; loop for i from 1 to NTHREADS
+            (@pthread-join (nth threads i) null))
+            ;; pthread_join(threads[i], NULL);
+        (return 0)) ;; return 0;}
 
 ## CUDA Example
 
-Here is an adapted version of NVIDIA's code for the julia set:
+Here is an adapted version of NVIDIA's code for the Julia set:
 
-	(headers
-	    ("../common/book.h" :local t)
-	    ("../common/cpu_bitmap.h" :local t))
-	
-	(template sq (x) (* x x))
-	(define !dim 1000)
-	
-	(struct cu-complex (
-	    (r real)
-	    (i real)))
-	
-	(template cu-complex-decl (rv iv)
-	    (cast (arr-decl rv iv) (struct cu-complex)))
-	
-	(func cu-complex-magnitude float ((x cu-complex))
-	    (return (+ (sq (.> x i)) (sq (.> x r)))))
-	
-	(func cu-complex-mul cu-complex ((x cu-complex) (y cu-complex))
-	    (var z cu-complex)
-	    (= (.> z r) (-
-	                    (* (.> x r) (.> y r))
-	                    (* (.> x i) (.> y i))))
-	    (= (.> z i) (+
-	                    (* (.> x i) (.> y r))
-	                    (* (.> x r) (.> y i))))
-	    (return z))
-	
-	(func cu-complex-add cu-complex ((x cu-complex) (y cu-complex))
-	    (var z cu-complex)
-	    (= (.> z r) (+ (.> x r) (.> y r)))
-	    (= (.> z i) (+ (.> x i) (.> y i)))
-	    (return z))
-	
-	(cuda/device julia int (x y)
-	    (const scale float 1.5)
-	    (template jvar (v)
-	        (var (sym/add j v) float
-	            (* scale (cast (/ (- (/ !dim 2) x) (/ !dim 2))))))
-	    (jvar x) (jvar y)
-	    (var c (struct cu-complex) (cu-complex-decl -0.8 0.156))
-	    (var a (struct cu-complex) (cu-complex-decl jx jy))
-	    (var i int 0)
-	    (for (= i 0) (< i 200) (++ i)
-	        (= a (@cu-complex-add (@cu-complex-mul a a) c))
-	        (if (> (@cu-complex-magnitude a) 1000) (return 0)))
-	    (return 1)
-	)
-	
-	(cuda/global kernel void (((pt ptr) char nil unsigned))
-	    (var x int block/idx/x)
-	    (var y int block/idx/y)
-	    (var offset int (+ x (* y grid/dim/x)))
-	    (var julia-value int (@julia x y))
-	    (= ([]ptr (+ 0 (* offset 4))) (* 255 julia-value))
-	    (= ([]ptr (+ 1 (* offset 4))) 0)
-	    (= ([]ptr (+ 2 (* offset 4))) 0)
-	    (= ([]ptr (+ 3 (* offset 4))) 255))
-	
-	(syn cpubitmap "CPUbitmap")
-	
-	(main
-	    (var (@bitmap !dim !dim) cpubitmap)
-	    (var (pt dev-bitmap) char nil unsigned)
-	    (@!handle-error
-	        (@cuda/malloc
-	            (cast (addr dev-bitmap) (typ* void 2))
-	            (.> bitmap (@image-size))))
-	    (var (@grid !dim !dim) dim3)
+    (headers
+        ("../common/book.h" :local t)
+        ("../common/cpu_bitmap.h" :local t))
+    
+    (template sq (x) (* x x))
+    (define !dim 1000)
+    
+    (struct cu-complex (
+        (r real)
+        (i real)))
+    
+    (template cu-complex-decl (rv iv)
+        (cast (arr-decl rv iv) (struct cu-complex)))
+    
+    (func cu-complex-magnitude float ((x cu-complex))
+        (return (+ (sq (.> x i)) (sq (.> x r)))))
+    
+    (func cu-complex-mul cu-complex ((x cu-complex) (y cu-complex))
+        (var z cu-complex)
+        (= (.> z r) (-
+                        (* (.> x r) (.> y r))
+                        (* (.> x i) (.> y i))))
+        (= (.> z i) (+
+                        (* (.> x i) (.> y r))
+                        (* (.> x r) (.> y i))))
+        (return z))
+    
+    (func cu-complex-add cu-complex ((x cu-complex) (y cu-complex))
+        (var z cu-complex)
+        (= (.> z r) (+ (.> x r) (.> y r)))
+        (= (.> z i) (+ (.> x i) (.> y i)))
+        (return z))
+    
+    (cuda/device julia int (x y)
+        (const scale float 1.5)
+        (template jvar (v)
+            (var (sym/add j v) float
+                (* scale (cast (/ (- (/ !dim 2) x) (/ !dim 2))))))
+        (jvar x) (jvar y)
+        (var c (struct cu-complex) (cu-complex-decl -0.8 0.156))
+        (var a (struct cu-complex) (cu-complex-decl jx jy))
+        (var i int 0)
+        (for (= i 0) (< i 200) (++ i)
+            (= a (@cu-complex-add (@cu-complex-mul a a) c))
+            (if (> (@cu-complex-magnitude a) 1000) (return 0)))
+        (return 1)
+    )
+    
+    (cuda/global kernel void (((pt ptr) char nil unsigned))
+        (var x int block/idx/x)
+        (var y int block/idx/y)
+        (var offset int (+ x (* y grid/dim/x)))
+        (var julia-value int (@julia x y))
+        (= ([]ptr (+ 0 (* offset 4))) (* 255 julia-value))
+        (= ([]ptr (+ 1 (* offset 4))) 0)
+        (= ([]ptr (+ 2 (* offset 4))) 0)
+        (= ([]ptr (+ 3 (* offset 4))) 255))
+    
+    (syn cpubitmap "CPUbitmap")
+    
+    (main
+        (var (@bitmap !dim !dim) cpubitmap)
+        (var (pt dev-bitmap) char nil unsigned)
+        (@!handle-error
+            (@cuda/malloc
+                (cast (addr dev-bitmap) (typ* void 2))
+                (.> bitmap (@image-size))))
+        (var (@grid !dim !dim) dim3)
         (cuda/call kernel (grid 1) dev-bitmap)
-	    (@!handle-error
-	        (@cuda/memcpy
-	            (.> bitmap (@get-ptr))
-	            dev-bitmap
-	            (.> bitmap (@image-size))
-	            cuda/dev->host))
+        (@!handle-error
+            (@cuda/memcpy
+                (.> bitmap (@get-ptr))
+                dev-bitmap
+                (.> bitmap (@image-size))
+                cuda/dev->host))
         (.> bitmap (@display-and-exit))
-	    (@!handle-error
-	        (@cuda/free dev-bitmap)))
+        (@!handle-error
+            (@cuda/free dev-bitmap)))
 
 This generates the following **C** code (after being cleaned up):
-	
-	#include "../common/book.h.h"
-	#include "../common/cpu_bitmap.h.h"
+    
+    #include "../common/book.h.h"
+    #include "../common/cpu_bitmap.h.h"
 
-	#define DIM 1000
-	
-	struct cu_complex{
-	float r;
-	float i;
-	};
-	
-	float cu_complex_magnitude(cu_complex x)
-	{
-	   return (((((x).i)*((x).i)))+((((x).r)*((x).r))));
-	};
-	
-	cu_complex cu_complex_mul(cu_complex x,cu_complex y)
-	{
-	   cu_complex z;
-	   (((z).r)=((((((x).r)*((y).r)))-((((x).i)*((y).i))))));
-	   (((z).i)=((((((x).i)*((y).r)))+((((x).r)*((y).i))))));
-	   return z;
-	};
-	
-	cu_complex cu_complex_add(cu_complex x,cu_complex y)
-	{
-	   cu_complex z;
-	   (((z).r)=((((x).r)+((y).r))));
-	   (((z).i)=((((x).i)+((y).i))));
-	   return z;
-	};
-	
-	__device__ 
-	int julia(int x,int y)
-	{
-	   const float scale=1.5;
-	   ;
-	   float jx=((scale)*(((int)(((((((DIM)/(2)))-(x)))/(((DIM)/(2))))))));
-	   float jy=((scale)*(((int)(((((((DIM)/(2)))-(x)))/(((DIM)/(2))))))));
-	   ;
-	   struct cu_complex c=((struct cu_complex)({-9.8, 0.156}));
-	   struct cu_complex a=((struct cu_complex)({jx, jy}));
-	   int i=0;
-	   
-	for(((i)=(0));((i)<(200));++(i))
-	{
-	   ((a)=(cu_complex_add(cu_complex_mul(a,a),c)));
-	   
-	if(((cu_complex_magnitude(a))>(1000))) {
-	   return 0;
-	};
-	};
-	   return 1;
-	};
-	
-	__global__ 
-	void kernel(unsigned char *ptr)
-	{
-	   int x=blockIdx.x;
-	   int y=blockIdx.y;
-	   int offset=((x)+(((y)*(gridDim.x))));
-	   int julia_value=julia(x,y);
-	   (((ptr)[((0)+(((offset)*(4))))])=(((255)*(julia_value))));
-	   (((ptr)[((1)+(((offset)*(4))))])=(0));
-	   (((ptr)[((2)+(((offset)*(4))))])=(0));
-	   (((ptr)[((3)+(((offset)*(4))))])=(255));
-	};
-	
-	;
-	
-	int main(int argc,char **argv)
-	{
-	   CPUbitmap bitmap(DIM,DIM);
-	   unsigned char *dev_bitmap;
-	   HANDLE_ERROR(cudaMalloc(((void**)(&(dev_bitmap))),(bitmap).image_size()));
-	   dim3 grid(DIM,DIM);
-	   kernel<<<grid,1>>>(dev_bitmap);
-	   HANDLE_ERROR(cudaMemcpy((bitmap).get_ptr(),dev_bitmap
-	   				(bitmap).image_size(),cudaMemcpyDeviceToHost));
-	   (bitmap).display_and_exit();
-	   HANDLE_ERROR(cudaFree(dev_bitmap));
-	};
-	
+    #define DIM 1000
+    
+    struct cu_complex{
+    float r;
+    float i;
+    };
+    
+    float cu_complex_magnitude(cu_complex x)
+    {
+       return (((((x).i)*((x).i)))+((((x).r)*((x).r))));
+    };
+    
+    cu_complex cu_complex_mul(cu_complex x,cu_complex y)
+    {
+       cu_complex z;
+       (((z).r)=((((((x).r)*((y).r)))-((((x).i)*((y).i))))));
+       (((z).i)=((((((x).i)*((y).r)))+((((x).r)*((y).i))))));
+       return z;
+    };
+    
+    cu_complex cu_complex_add(cu_complex x,cu_complex y)
+    {
+       cu_complex z;
+       (((z).r)=((((x).r)+((y).r))));
+       (((z).i)=((((x).i)+((y).i))));
+       return z;
+    };
+    
+    __device__ 
+    int julia(int x,int y)
+    {
+       const float scale=1.5;
+       ;
+       float jx=((scale)*(((int)(((((((DIM)/(2)))-(x)))/(((DIM)/(2))))))));
+       float jy=((scale)*(((int)(((((((DIM)/(2)))-(x)))/(((DIM)/(2))))))));
+       ;
+       struct cu_complex c=((struct cu_complex)({-9.8, 0.156}));
+       struct cu_complex a=((struct cu_complex)({jx, jy}));
+       int i=0;
+       
+    for(((i)=(0));((i)<(200));++(i))
+    {
+       ((a)=(cu_complex_add(cu_complex_mul(a,a),c)));
+       
+    if(((cu_complex_magnitude(a))>(1000))) {
+       return 0;
+    };
+    };
+       return 1;
+    };
+    
+    __global__ 
+    void kernel(unsigned char *ptr)
+    {
+       int x=blockIdx.x;
+       int y=blockIdx.y;
+       int offset=((x)+(((y)*(gridDim.x))));
+       int julia_value=julia(x,y);
+       (((ptr)[((0)+(((offset)*(4))))])=(((255)*(julia_value))));
+       (((ptr)[((1)+(((offset)*(4))))])=(0));
+       (((ptr)[((2)+(((offset)*(4))))])=(0));
+       (((ptr)[((3)+(((offset)*(4))))])=(255));
+    };
+    
+    ;
+    
+    int main(int argc,char **argv)
+    {
+       CPUbitmap bitmap(DIM,DIM);
+       unsigned char *dev_bitmap;
+       HANDLE_ERROR(cudaMalloc(((void**)(&(dev_bitmap))),(bitmap).image_size()));
+       dim3 grid(DIM,DIM);
+       kernel<<<grid,1>>>(dev_bitmap);
+       HANDLE_ERROR(cudaMemcpy((bitmap).get_ptr(),dev_bitmap
+                    (bitmap).image_size(),cudaMemcpyDeviceToHost));
+       (bitmap).display_and_exit();
+       HANDLE_ERROR(cudaFree(dev_bitmap));
+    };
+    
 
 
 ## MPI Example
 
 __LISP__/__c__ has support for **MPI** as well. For example, the following program:
 
-	(headers
-	    (mpi :local t)
-	    stdio)
-	
-	(main
-	    (vars (numtasks rank len rc))
-	    (var (arr hostname mpi/max/processor/name) char)
-	    (set rc (@mpi/init (addr argc) (addr argv)))
-	    (if (neq rc mpi/success)
-	        (progn
-	            (@printf
-	                (str "Error starting MPI program. Terminating.\\n"))
-	            (@mpi/abort mpi/comm/world rc)))
-	    (@mpi/comm/size mpi/comm/world (addr numtasks))
-	    (@mpi/comm/rank mpi/comm/world (addr rank))
-	    (@mpi/get/processor/name hostname (addr len))
-	    (@printf
-	        (str "Number of tasks= %d My rank = %d Running on %s\\n")
-	        numtasks rank hostname)
-	    (@mpi/finalize)
-	)
+    (headers
+        (mpi :local t)
+        stdio)
+    
+    (main
+        (vars (numtasks rank len rc))
+        (var (arr hostname mpi/max/processor/name) char)
+        (set rc (@mpi/init (addr argc) (addr argv)))
+        (if (neq rc mpi/success)
+            (progn
+                (@printf
+                    (str "Error starting MPI program. Terminating.\\n"))
+                (@mpi/abort mpi/comm/world rc)))
+        (@mpi/comm/size mpi/comm/world (addr numtasks))
+        (@mpi/comm/rank mpi/comm/world (addr rank))
+        (@mpi/get/processor/name hostname (addr len))
+        (@printf
+            (str "Number of tasks= %d My rank = %d Running on %s\\n")
+            numtasks rank hostname)
+        (@mpi/finalize)
+    )
 
 Compiles to the example program:
 
-	#include "mpi.h"
-	#include <stdio.h>
-	;
-	
-	int main(int argc,char** argv)
-	{
-	   
-	int numtasks,
-	int rank,
-	int len,
-	int rc;
-	   char hostname[MPI_MAX_PROCESSOR_NAME];
-	   ((rc)=(MPI_Init(&(argc),&(argv))));
-	   
-	if(((rc)!=(MPI_SUCCESS))){
-	   
-	  printf("Error starting MPI program. Terminating.\n");
-	  MPI_Abort(MPI_COMM_WORLD,rc);;
-	};
-	   MPI_Comm_size(MPI_COMM_WORLD,&(numtasks));
-	   MPI_Comm_rank(MPI_COMM_WORLD,&(rank));
-	   MPI_Get_processor_name(hostname,&(len));
-	   printf("Number of tasks= %d My rank = %d Running on %s\n",numtasks,rank,hostname);
-	   MPI_Finalize();
-	};
+    #include "mpi.h"
+    #include <stdio.h>
+    ;
+    
+    int main(int argc,char** argv)
+    {
+       
+    int numtasks,
+    int rank,
+    int len,
+    int rc;
+       char hostname[MPI_MAX_PROCESSOR_NAME];
+       ((rc)=(MPI_Init(&(argc),&(argv))));
+       
+    if(((rc)!=(MPI_SUCCESS))){
+       
+      printf("Error starting MPI program. Terminating.\n");
+      MPI_Abort(MPI_COMM_WORLD,rc);;
+    };
+       MPI_Comm_size(MPI_COMM_WORLD,&(numtasks));
+       MPI_Comm_rank(MPI_COMM_WORLD,&(rank));
+       MPI_Get_processor_name(hostname,&(len));
+       printf("Number of tasks= %d My rank = %d Running on %s\n",numtasks,rank,hostname);
+       MPI_Finalize();
+    };
 
 ## Synonyms
 
@@ -512,18 +512,18 @@ Uses the same syntax as `vars`, but puts semicolons between the variable delcara
 ### `(struct` struct-name ({variables}*) `)`
 Creates a structure named *struct-name* with variables *variables*. For example:
 
-	(struct foo (
-		bar
-		(baz qux)
-		((pt xyzzy) foobar)))
+    (struct foo (
+        bar
+        (baz qux)
+        ((pt xyzzy) foobar)))
 
 Compiles to
 
-	struct foo {
-		int bar;
-		qux baz;
-		foobar *xyzzy;
-	};
+    struct foo {
+        int bar;
+        qux baz;
+        foobar *xyzzy;
+    };
 
 ### `(block` linelist {bracket? (default = t)}? `)`
 This creates a **C** block structure. If *bracket* is set to `nil`, then it has no brackets around it. This serves mainly as a way to consolidate elements generated for `template` recipes.
@@ -572,16 +572,16 @@ Puts parentheses around *term*.
 
 THe following:
 
-	(comment this is "A Comment")
-	(comment s this is "A Comment")
+    (comment this is "A Comment")
+    (comment s this is "A Comment")
 
 compile to (respectively):
 
-	/*********************/
-	/* this is A Comment */
-	/*********************/
-	
-	/* this is A Comment */
+    /*********************/
+    /* this is A Comment */
+    /*********************/
+    
+    /* this is A Comment */
 
 The reason why the second comment was shorter was because it began with an `s`.
 
@@ -591,12 +591,12 @@ Same as `include`, but automatically adds a `.h` to the end of *name*.
 ### `(headers` argument-lists `)`
 Each argument in the argument list can be an atom, which will be assumed to be a list in the final phase of processing. For exmaple,
 
-	(headers foo (bar :local t))
-	
+    (headers foo (bar :local t))
+    
 compiles to the **C** code
 
-	#include <foo.h>
-	#include "bar.h"
+    #include <foo.h>
+    #include "bar.h"
 
 This is useful if you have a whole slew of things to include. It's also worth noting that something like `(headers arpa/inet)` will compile to `#include <arpa/inet.h>`.
 
@@ -618,6 +618,170 @@ Creates a cuda `__shared__` variable.
 ## What's With the Slashes?
 
 You'll notice that `mpi/comm/size` compiles to `MPI_Comm_size` and that `cuda/dev->host` compiles to `cudaMemcpyDeviceToHost`. This is because external libraries are given support in this manner (with slashes).
+
+## Synonyms
+
+### General
+
+| Term | Replacement
+|--
+| null | NULL
+| arg/c | argc
+| arg/count | argc
+| arg/v | argv
+| arg/values | argv
+| integer | int
+| integer+ | long
+| natural | unsigned int
+| natural+ | unsigned long
+| real | float
+| real+ | double
+| boolean | char
+| cstring | char*
+
+### CUDA
+
+| Term | Replacement
+|--
+| cuda/malloc | cudaMalloc
+| cuda/memcpy | cudaMemcpy
+| cuda/free | cudaFree
+| cuda/host->dev | cudaMemcpyHostToDevice
+| cuda/dev->host | cudaMemcpyDeviceToHost
+| cuda/dev/count | cudaDeviceCount
+| cuda/dev/set | cudaSetDevice
+| cuda/dev/get | cudaGetDevice
+| cuda/dev/props | cudaDeviceProperties
+| cuda/sync | __syncthreads
+| block/idx | blockIdx
+| block/idx/x | blockIdx.x
+| block/idx/y | blockIdx.y
+| block/idx/z | blockIdx.z
+| thread/idx | threadIdx
+| thread/idx/x | threadIdx.x
+| thread/idx/y | threadIdx.y
+| thread/idx/z | threadIdx.z
+| block/dim | blockDim
+| block/dim/x | blockDim.x
+| block/dim/y | blockDim.y
+| block/dim/z | blockDim.z
+| grid/dim | gridDim
+| grid/dim/x | gridDim.x
+| grid/dim/y | gridDim.y
+| grid/dim/z | gridDim.z
+| dim/block | dimBlock
+| dim/grid | dimGrid
+
+### MPI 
+
+| Term | Replacement
+|--
+| mpi/success | MPI_SUCCESS
+| mpi/err/buffer | MPI_ERR_BUFFER
+| mpi/err/count | MPI_ERR_COUNT
+| mpi/err/type | MPI_ERR_TYPE
+| mpi/err/tag | MPI_ERR_TAG
+| mpi/err/comm | MPI_ERR_COMM
+| mpi/err/rank | MPI_ERR_RANK
+| mpi/err/request | MPI_ERR_REQUEST
+| mpi/err/root | MPI_ERR_ROOT
+| mpi/err/group | MPI_ERR_GROUP
+| mpi/err/op | MPI_ERR_OP
+| mpi/err/topology | MPI_ERR_TOPOLOGY
+| mpi/err/dims | MPI_ERR_DIMS
+| mpi/err/arg | MPI_ERR_ARG
+| mpi/err/unknown | MPI_ERR_UNKNOWN
+| mpi/err/truncate | MPI_ERR_TRUNCATE
+| mpi/err/other | MPI_ERR_OTHER
+| mpi/err/intern | MPI_ERR_INTERN
+| mpi/pending | MPI_PENDING
+| mpi/err/in/status | MPI_ERR_IN_STATUS
+| mpi/err/lastcode | MPI_ERR_LASTCODE
+| mpi/bottom | MPI_BOTTOM
+| mpi/proc/null | MPI_PROC_NULL
+| mpi/any/source | MPI_ANY_SOURCE
+| mpi/any/tag | MPI_ANY_TAG
+| mpi/undefined | MPI_UNDEFINED
+| mpi/bsend/overhead | MPI_BSEND_OVERHEAD
+| mpi/keyval/invalid | MPI_KEYVAL_INVALID
+| mpi/errors/are/fatal | MPI_ERRORS_ARE_FATAL
+| mpi/errors/return | MPI_ERRORS_RETURN
+| mpi/max/processor/name | MPI_MAX_PROCESSOR_NAME
+| mpi/max/error/string | MPI_MAX_ERROR_STRING
+| mpi/char | MPI_CHAR
+| mpi/short | MPI_SHORT
+| mpi/int | MPI_INT
+| mpi/long | MPI_LONG
+| mpi/unsigned/char | MPI_UNSIGNED_CHAR
+| mpi/unsigned/short | MPI_UNSIGNED_SHORT
+| mpi/unsigned | MPI_UNSIGNED
+| mpi/unsigned/long | MPI_UNSIGNED_LONG
+| mpi/float | MPI_FLOAT
+| mpi/double | MPI_DOUBLE
+| mpi/long/double | MPI_LONG_DOUBLE
+| mpi/byte | MPI_BYTE
+| mpi/packed | MPI_PACKED
+| mpi/float/int | MPI_FLOAT_INT
+| mpi/double/int | MPI_DOUBLE_INT
+| mpi/long/int | MPI_LONG_INT
+| mpi/2int | MPI_2INT
+| mpi/short/int | MPI_SHORT_INT
+| mpi/long/double/int | MPI_LONG_DOUBLE_INT
+| mpi/long/long/int | MPI_LONG_LONG_INT
+| mpi/ub | MPI_UB
+| mpi/lb | MPI_LB
+| mpi/comm/world | MPI_COMM_WORLD
+| mpi/comm/self | MPI_COMM_SELF
+| mpi/ident | MPI_IDENT
+| mpi/congruent | MPI_CONGRUENT
+| mpi/similar | MPI_SIMILAR
+| mpi/unequal | MPI_UNEQUAL
+| mpi/tag/ub | MPI_TAG_UB
+| mpi/io | MPI_IO
+| mpi/host | MPI_HOST
+| mpi/wtime/is/global | MPI_WTIME_IS_GLOBAL
+| mpi/max | MPI_MAX
+| mpi/min | MPI_MIN
+| mpi/sum | MPI_SUM
+| mpi/prod | MPI_PROD
+| mpi/maxloc | MPI_MAXLOC
+| mpi/minloc | MPI_MINLOC
+| mpi/band | MPI_BAND
+| mpi/bor | MPI_BOR
+| mpi/bxor | MPI_BXOR
+| mpi/land | MPI_LAND
+| mpi/lor | MPI_LOR
+| mpi/lxor | MPI_LXOR
+| mpi/group/null | MPI_GROUP_NULL
+| mpi/comm/null | MPI_COMM_NULL
+| mpi/datatype/null | MPI_DATATYPE_NULL
+| mpi/request/null | MPI_REQUEST_NULL
+| mpi/op/null | MPI_OP_NULL
+| mpi/errhandler/null | MPI_ERRHANDLER_NULL
+| mpi/group/empty | MPI_GROUP_EMPTY
+| mpi/graph | MPI_GRAPH
+| mpi/cart | MPI_CART
+| mpi/aint | MPI_Aint
+| mpi/status | MPI_Status
+| mpi/group | MPI_Group
+| mpi/comm | MPI_Comm
+| mpi/datatype | MPI_Datatype
+| mpi/request | MPI_Request
+| mpi/op | MPI_Op
+| mpi/copy/function | MPI_Copy_function
+| mpi/delete/function | MPI_Delete_function
+| mpi/handler/function | MPI_Handler_function
+| mpi/user/function | MPI_User_function
+| mpi/init | MPI_Init
+| mpi/comm/size | MPI_Comm_size
+| mpi/comm/rank | MPI_Comm_rank
+| mpi/abort | MPI_Abort
+| mpi/get/processor/name | MPI_Get_processor_name
+| mpi/get/version | MPI_Get_version
+| mpi/initialized | MPI_Initialized
+| mpi/wtime | MPI_Wtime
+| mpi/wtick | MPI_Wtick
+| mpi/finalize | MPI_Finalize
 
 ## Philosophy, Terminology, and Semiotics
 
