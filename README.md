@@ -32,7 +32,7 @@ But why?
 
 ## Why
 
-Because __LISP__ is expressive and __C__ is fast and I wanted the best of both worlds is the short answer. The longer answer has something to do with macros. But instead of immediately boring you with that, I'll answer what you really want to know:
+First, you might check out [this video](https://www.facebook.com/jbakid/posts/10154049973656597). Because __LISP__ is expressive and __C__ is fast and I wanted the best of both worlds is the short answer. The longer answer has something to do with macros. But instead of immediately boring you with that, I'll answer what you really want to know:
 
 ## Why Should I Care?
 
@@ -69,6 +69,30 @@ Or even like this (with `template`__s__):
     (make-foos int long float etc)
 
 And just like that, you have a bunch of functions written. Now to get you sort of grounded, let's go through this element by element.
+
+### Beyond Templates
+If you know what you're doing, you can use `lispmacro`s. One useful example is the following:
+
+	(lispmacro class (nym vars)
+	  (c `(progn
+	        (typedef ,nym ,nym)
+	        (struct ,nym ,vars))))
+
+Then you can write code like
+
+	(class cell
+	  (((pt car) cell)
+	   ((pt cdr) cell)
+	   ((pt etc) void)))
+
+And have it compile to (after cleaning it up a bit):
+
+	typedef cell cell;  
+	struct cell{
+	    cell *car;
+	    cell *cdr;
+	    void *etc;
+	};
 
 ### Arithmetic
 
