@@ -1012,7 +1012,7 @@ You'll notice that `mpi/comm/size` compiles to `MPI_Comm_size` and that `cuda/de
 | --- | ... |
 | -# | # |
 | -## | ## |
-| -va-args- | __VA_ARGS__ |
+| -va-args- | <sup><sub> _ _ </sub></sup> VA_ARGS <sup><sub> _ _ </sub></sup> |
 
 ### For Convenience
 
@@ -1292,8 +1292,6 @@ __LISP__/__c__ is meant to be pronounced "lispsy".
 ## TODO
 
 Add support for error checking.
-
-Add transparent support for **C++**.
 
 Add support for **OpenMP**.
 
