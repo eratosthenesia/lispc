@@ -864,11 +864,11 @@ You'll notice that `mpi/comm/size` compiles to `MPI_Comm_size` and that `cuda/de
 | putc/unlocked | putc_unlocked |
 | putc/unlocked | putc_unlocked |
 | pthread/detach | pthread_detach |
-| pthread/threads/max | PTHREAD_THREADS_MAX" |
-| pthread/keys/max | PTHREAD_KEYS_MAX" |
-| pthread/stack/min | PTHREAD_STACK_MIN" |
-| pthread/create/detached | PTHREAD_CREATE_DETACHED" |
-| pthread/create/joinable | PTHREAD_CREATE_JOINABLE" |
+| pthread/threads/max | PTHREAD_THREADS_MAX |
+| pthread/keys/max | PTHREAD_KEYS_MAX |
+| pthread/stack/min | PTHREAD_STACK_MIN |
+| pthread/create/detached | PTHREAD_CREATE_DETACHED |
+| pthread/create/joinable | PTHREAD_CREATE_JOINABLE |
 
 ### MPI 
 
