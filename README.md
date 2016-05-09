@@ -2,7 +2,9 @@
 
 ## Installing
 
-To install, simply go into the directory that you downloaded everything into, run `clisp`, and type `(load "c.lisp")`. To compile a `cl` file into a `c` file, type `(c-cl-file source.cl dest.c)`. To compile and run a `cl` file, type in `(compile-and-run-cl-file file.cl)`. More documentation on this part to come. <sup><sub>TODO</sub></sup>
+To install, simply go into the directory that you downloaded everything into, run `clisp`, and type `(load "c.lisp")`. To compile a `cl` file into a `c` file, type `(c-cl-file source.cl dest.c)`. To compile and run a `cl` file, type in `(compile-and-run-cl-file file.cl)`. More documentation on this part to come. <sup><sub>**TODO**</sub></sup>
+
+**NOTE**: The way it is currently written, it may have to be loaded more than once. I'm looking into this and refactoring the code to run the first time at the moment. <sup><sub> **TODO** </sub></sup>
 
 ## Resources
 
@@ -73,26 +75,26 @@ And just like that, you have a bunch of functions written. Now to get you sort o
 ### Beyond Templates
 If you know what you're doing, you can use `lispmacro`s. One useful example is the following:
 
-	(lispmacro class (nym vars)
-	  (c `(progn
-	        (typedef ,nym ,nym)
-	        (struct ,nym ,vars))))
+    (lispmacro class (nym vars)
+      (c `(progn
+            (typedef ,nym ,nym)
+            (struct ,nym ,vars))))
 
 Then you can write code like
 
-	(class cell
-	  (((pt car) cell)
-	   ((pt cdr) cell)
-	   ((pt etc) void)))
+    (class cell
+      (((pt car) cell)
+       ((pt cdr) cell)
+       ((pt etc) void)))
 
 And have it compile to (after cleaning it up a bit):
 
-	typedef cell cell;  
-	struct cell{
-	    cell *car;
-	    cell *cdr;
-	    void *etc;
-	};
+    typedef cell cell;  
+    struct cell{
+        cell *car;
+        cell *cdr;
+        void *etc;
+    };
 
 ### Arithmetic
 
@@ -127,11 +129,35 @@ There are two ways that functions can be called. Suppose we want to know the val
 
 or
 
-### The @ Notation
+## Simplifying Notation
+The following are offered in order to simplify common tasks.
+
+### The `@` Notation
 
     (@foo 2 3 4)
 
-This is the same thing as `(call foo 2 3 4)`. This is used to greatly simplify function calls. Use this whenever possible, since nobody wants to wade through a bunch of `call` statements. `call` is mainly useful for `template` statements.
+This is the same thing as `(call foo 2 3 4)` and evaluates to `foo(2,3,4)`. This is used to greatly simplify function calls. Use this whenever possible, since nobody wants to wade through a bunch of `call` statements. `call` is mainly useful for `template` statements.
+
+### The `[]` Notation
+
+    ([]foo 2 3 4)
+    
+This is the same thing as `(nth 2 3 4)` and evaluates to `(foo)[2][3][4]`. It uses the same rationale as above, as do the next few *Notation*s.
+
+### The `&` Notation
+`(&foo)` is the same thing as `(addr foo)` and evaluates to `&(foo)`.
+
+### The `^` Notation
+`(^foo bar baz)` is the same thing as `(cast foo bar baz)` and evalutates to (after cleanup) `(baz)(bar)(foo)`.
+
+### The `*` Notation
+`(*foo)` is the same thing as `(ptr foo)` which evaluates to `*foo`.
+
+### The `=` Notation
+This is in case you want camelcase. `(=this is a test)` compiles to `ThisIsATest` (as do `(=this is a test)`, `(=this "is-a" test)`, and `(=this-is a-test)`). This is one of two cases where `"..."` are *not* literal.
+
+### The '%' notation
+Exactly the same as above, but the first letter is not capitalized. Viz., `(%this is a test)` turns out to be `thisIsATest`.
 
 ### Thing Names
 
@@ -140,6 +166,94 @@ Variable, type, function, etc. (identifier) names are converted using some simpl
 ### Continuing Forward
 
 We need some sort of framework for showing each of the features of __LISP__/__c__. So before I go through every function and explain what it does, I'm going to explain a little of what goes on behind the scenes.
+
+## C++ Example
+**LISP**/**c** can write **C++** code as well, and has a few functions which are specifically designed for **C++**.
+
+Here is the "Hello world!" program written in **C++** through **LISP**/**c**:
+
+    (headers++ iostream)
+    (using std)
+    (<<+ cout "Hello world!" endl)
+    
+You'll notice that we used `<<+` instead of `<<`. This is because `<<+`, unlike `<<`, is meant for streams and does not parenthesize.
+
+## Variadic Example
+
+This is a simple function to add up a bunch of arguments that end in zero and are all itnegers.
+
+	(f{} add-em-up int (
+	(first int)
+	 ---)
+	(var va-list args)
+	(@va-start args first)
+	(var sum first)
+	(var cur first)
+	(while (!= cur 0)
+		(= cur (@va-arg args int))
+		(+= sum cur))
+	(return sum))
+
+You'll notice that instead of `func` we used `f{}`. This is shorthand. A table of shorthand is avaiable nearer the bottom of the page.
+	
+## Complex C++ Code
+Let's say we wanted to enter the following code into **LISP**/**c**:
+
+	template<typename T>
+	class Array {
+	public:
+	  Array(int len=10)                : len_(len), data_(new T[len]) { }
+	 ~Array()                          { delete[] data_; }
+	  int len() const                  { return len_;     }
+	  const T& operator[](int i) const { return data_[check(i)]; }
+	  T&       operator[](int i)       { return data_[check(i)]; }
+	  Array(const Array<T>&);
+	  Array(Array<T>&&);
+	  Array<T>& operator= (const Array<T>&);
+	  Array<T>& operator= (Array<T>&&);
+	private:
+	  int len_;
+	  T*  data_;
+	  int check(int i) const {
+	    assert(i >= 0 && i < len_);
+	    return i;
+	  }
+	};
+
+One way of doing so is like this:
+
+	(t<> !t typename
+		(class (=array)
+			(public
+				(cx
+					((len int 10))
+					((len- len) (data- (new (arr !t len)))))
+				(destroy nil
+					(@delete[] data-))
+				(f{} len int ()
+					const
+					(return len-))
+				(op [] (const (t& !t))
+					((i int))
+					const
+					(return ([]data- (@check i))))
+				(op [] (t& !t)
+					((i int))
+					(return ([]data- (@check i))))
+				(cx (((t& (const (<> (=array) !t))))))
+				(cx (((t& (<> (=array) !t) 2))))
+				(op = (t& (<> (=array) !t))
+					(((t& (const (<> (=array) !t))))))
+				(op = (t& (<> (=array) !t))
+					(((t& (<> (=array) !t) 2)))))
+			(private
+				(var len- int)
+				(var data- (t* !t))
+				(f{} check int
+					((i int))
+					const
+					(@assert (&& (>= i 0) (< i len-)))
+					(return i)))))
 
 ## Engine
 
@@ -194,6 +308,7 @@ Compiles **LISP**/**c** code into **C** code from *file-in* to *c-file*.
 
 ### Other conventions
 When a **LISP**/**c** function such as `while` is called, it's actually calling a lisp function called `while-c`. This may change in the future, but is done presently for convenience. <sup><sub>**TODO**</sub></sup>
+
 
 ## An Example: Multithreading
 
@@ -500,7 +615,7 @@ This creates a new identifier that is an aggregate of the individual identifiers
 
 This creates a pointer type. For example, `(typ* integer)` compiles to `int*`, and `(typ* char 4)` compiles to `char****`.
 
-### `(var` var {type (default = int)}? {init}? {modifiers}* `)`
+### `(var` var {type}? {init}? {modifiers}* `)`
 Declares a variable. If init is specified, it compiles to a declaration of that variable with that type.
 
 ### `(const` ... `)`
@@ -587,12 +702,15 @@ Compiles to
         qux baz;
         foobar *xyzzy;
     };
+    
+### `(union` ... `)`
+Uses the same syntax as above, but is for unions.
 
 ### `(block` linelist {bracket? (default = t)}? `)`
 This creates a **C** block structure. If *bracket* is set to `nil`, then it has no brackets around it. This serves mainly as a way to consolidate elements generated for `template` recipes.
-
-### `(func` name type variables {body}* `)`
-This creates a function with name *name, type *type*, variables *variables* (as processed through the `vars` facility), and with code inside *body*. If *body* is not specified, then there is no code inside the function and it is treated as a function prototype. If variables is set to `()` or `nil`, then the variable list will be compiled in **C** as `()`. There is currently no facility for a `void` specification, but that will change shortly. <sub><sup>**TODO**</sup></sub>
+I
+### `(func` name type {variables}? {body}* `)`
+This creates a function with name *name, type *type*, variables *variables* (as processed through the `vars` facility), and with code inside *body*. If *body* is not specified, then there is no code inside the function and it is treated as a function prototype. If variables is set to `()` or `nil`, then the variable list will be compiled in **C** as `()`.<sub><sup>**TODO**</sup></sub>
 
 ### `(cuda/global` ... `)`
 Uses the same syntax as `func`, but appends `__global__` to the beginning.
@@ -681,6 +799,70 @@ This does not quite work as well as it should yet <sup><sub>**TODO**</sub></sup>
 ### `(cuda/shared` variable `)`
 Creates a cuda `__shared__` variable.
 
+## A List of **C++** Functions
+
+This list will be completed <sub><sup>**TODO**</sup></sub>
+
+### `(headers++` {headers}* `)`
+Puts `#include` statements, but without appending `.h`.
+
+### `(namespace` {terms}* `)`
+Puts a `::` between the terms with no parentheses.
+
+### `(typ&` nym {n (default=1)}? `)`
+`(typ& foo 2)` will evaluate to `foo&&`, and `(typ& foo)` will evalutate to `foo&`.
+
+### `(ptr&` ... `)`
+Uses same syntax as above, but `(ptr& foo 3)` will evaluate to `&&&foo`.
+
+### `(class` class-name {terms}*`)`
+This will define a class named *class-name* with the code inside defined by *terms*.
+
+### `(protected` {terms}* `)`
+Declares a section of code to be `protected`. Should only be used inside `defclass` statements.
+
+### `(private` ... `)`
+As above, but with `private`.
+
+### `(public` ... `)`
+As above, but with `public`.
+
+### `(construct` args `(`){`(`arg var-set`)`}*`)` {code}*`)`
+Will create an constructor.
+
+### `(operator` oper type args {code}* `)`
+
+### `(decltemp` var typ {code}* `)`
+Can be also called with the synonym `t<>`. Creates a template statement with code after it. For example, `(var pi !t (@!t 3.14) (t<> typename !t) constexpr)` evaluates to `template <T typename> constexpr T pi=T(3.14)`.
+
+### `(temp` identifier type `)`
+Creates a template variable statement. Can also be accessed with the synonym `<>`. For example, `(<> foo bar)` evaluates to `foo<bar>`, and
+
+    (t<> nil nil
+        (func bool (<> max bool) (
+            (a bool) (b bool))
+            (return (or a b))))
+
+returns
+
+    template <>
+    bool max<bool>(bool a,bool b)
+    {
+       return ((a)||(b));
+    }
+
+### `(using` namespace-name `)`
+This simply returns `using namespace` followed by the name of the namespace. For example, `(using foo)` returns `using namespace foo;`.
+
+### `(new` {terms}* `)`
+Simply appends `new` to the *terms*.
+
+### `(<<+` {terms}* `)`
+This has a bunch of terms separated by ` << `s. Meant for stream operators. It does not insert any new parentheses.
+
+### `(>>+` ... `)`
+As above, but with ` >> `s. No parentheses either.
+
 ## Binomial Operators
 
 These include `+`, `-`, and the like. Each of these has a number of synonyms: These can take more than two arguments. For example,`(- a b c)` will come out to (after cleaning up the code) `(a-b)-c` or `a-b-c`. These are left or right reductive depending on whether they are in **C** or not. 
@@ -765,6 +947,44 @@ This is the not (!x) operator. It can be accessed through `!` `not` `un` `a` and
 ### `~`
 This is the bit-not (~x) operator. It can be accessed through `~` `bit-not` `bit-un` `bit-a` and `bit-flip`.
 
+So along with synonyms, the code (adapted from the website linked to [here](http://www.cplusplus.com/reference/initializer_list/initializer_list/begin-free/)):
+
+    #include <iostream>
+    #include <initializer_list>
+    
+    template<class T> void print_list (std::initializer_list<T> il) {
+      for (const T* it=begin(il); it!=end(il); ++it) std::cout << ' ' << *it;
+      std::cout << '\n';
+    }
+    
+    int main ()
+    {
+      print_list ({10,20,30});
+      return 0;
+    }
+
+Can be written in **LISP**/**c** as (with the *Synonyms* below):
+
+    (h+ iostream initializer-list) 
+    (t<> !t class
+        (f{} print-list void (
+            (il (ns std (<> initializer-list !t))))
+            
+            (for
+                (v it (t* !t) (@begin il) const)
+                (!= it (@end il))
+                (++ it)
+                
+                (<<+ (ns std cout) (ch " ") (p* it))
+                (<<+ (ns std cout) (ch \\n)))))
+    (m
+        (@print-list ({}s 10 20 30))
+        (return 0))
+
+And the way a class is declared is the following:
+
+
+
 ## What's With the Slashes?
 
 You'll notice that `mpi/comm/size` compiles to `MPI_Comm_size` and that `cuda/dev->host` compiles to `cudaMemcpyDeviceToHost`. This is because external libraries are given support in this manner (with slashes).
@@ -788,7 +1008,84 @@ You'll notice that `mpi/comm/size` compiles to `MPI_Comm_size` and that `cuda/de
 | real | float |
 | real+ | double |
 | boolean | char |
-| cstring | char* |
+| stringc | char* |
+| --- | ... |
+| -# | # |
+| -## | ## |
+| -va-args- | __VA_ARGS__ |
+
+### For Convenience
+
+| Term | Replacement |
+| --- | --- |
+| namespace | n/s |
+| namespace | ns |
+| typ* | t* |
+| typ& | t& |
+| ptr | p* |
+| ptr& | p& |
+| ptr& | var& |
+| var | v |
+| defclass | c. |
+| defclass | d/c |
+| operator | op |
+| operator | opr |
+| construct | cx |
+| return | r |
+| headers | hh |
+| headers++ | h+ |
+| header | h |
+| typedef | t/d |
+| nth | n. |
+| nth | no. |
+| nth | nn |
+| arr | ar |
+| arr-decl | {}s |
+| main | m |
+| while | w |
+| do-while | d/w |
+| for | f |
+| arr | a. |
+| char | ch |
+| str | s. |
+| varlist | v/l |
+| switch | sx |
+| call | c |
+| struct | s{} |
+| struct | sx |
+| block | b |
+| define | d# |
+| pragma | p# |
+| public | pu. |
+| private | pr. |
+| protected | px. |
+| friend | fr. |
+| template | tmplt |
+| template | !! |
+| templates | !!! |
+| template | t. |
+| templates | t.. |
+| comment | cmt |
+| comment | z |
+| comment | /* |
+| comment++ | cmt+ |
+| comment++ | cmt++ |
+| comment++ | z+ |
+| comment++ | // |
+| temp | <> |
+| decltemp | \<t\> |
+| decltemp | t<> |
+| <<+ | <stream |
+| <<+ | <<stream |
+| <<+ | <stream< |
+| <<+ | stream< |
+| <<+ | stream<< |
+| <<+ | <<< |
+| >>+ | stream> |
+| >>+ | stream>> |
+| >>+ | >stream |
+| >>+ | >>stream |
+| >>+ | >>>) |
 
 ### CUDA
 
