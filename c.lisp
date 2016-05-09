@@ -133,7 +133,7 @@
   (labels ((helper (a b) (if a `(format nil "(~a)" (cof ,b)) `(cof ,b))))
     `(cdefun ,nym (x y) (format nil "~a~a~a" ,(helper nlp 'x) ',oper ,(helper nrp 'y)))))
 
-					; does a left reduce
+					; does a left reduce 
 (defmacro lredop (oper &key nym nparen)
   (def nym oper)
   (let ((lp (if nparen "" "(")) (rp (if nparen "" ")")))
@@ -211,7 +211,7 @@
           (string-upcase (char str 0))
           (string-downcase (subseq str 1))))
 
-(defun uncapitalize (str)
+(defun uncapitalize-c (str)
   (format nil "~a~a"
           (string-downcase (char str 0))
           (subseq str 1)))
@@ -233,7 +233,7 @@
   (remove-if #'(lambda (x) (eq (length x) 0))
              (mapcar #'chs->str (divide-at (str->chs str) ch))))
 
-(defun camelcase (&rest strs)
+(defun camelcase-c (&rest strs)
   (setf strs
         (flatten (mapcan #'(lambda (x) (split-str x #\-)) strs)))
   (format nil "~{~a~}" (mapcar #'capitalize strs)))
@@ -255,8 +255,8 @@
                         (#\& (apply #'addr-c (cof (symtrim (car x) 1)) (cdr x)))
                         (#\^ (apply #'cast-c (cof (symtrim (car x) 1)) (cdr x)))
                         (#\* (apply #'ptr-c (cof (symtrim (car x) 1)) (cdr x)))
-                        (#\= (apply #'camelcase (strof (symtrim (car x) 1)) (mapcar #'strof (cdr x))))
-                        (#\% (uncapitalize (apply #'camelcase (strof (symtrim (car x) 1)) (mapcar #'strof (cdr x)))))
+                        (#\= (apply #'camelcase-c (strof (symtrim (car x) 1)) (mapcar #'strof (cdr x))))
+                        (#\% (uncapitalize-c (apply #'camelcase-c (strof (symtrim (car x) 1)) (mapcar #'strof (cdr x)))))
                         (otherwise (apply (cnym (car x)) (cdr x))))
                   (apply (cnym (car x)) (cdr x)))
               (format nil "~{~a~^~(;~%~)~}" (mapcar #'cof x))))))
@@ -429,8 +429,6 @@
        (format nil "union ~a" nym)))
  (block (lines &optional (bracket t))
       (let ((preq ""))
-        (print (car lines))
-        (print (eq (car lines) 'const))
         (if (eq 'const (car lines))
             (progn
               (setf preq " const ")
@@ -601,6 +599,9 @@
   (new (&rest xs)
        (cofsy xs)
        (format nil "new ~{~a~}" xs))
+  (try/catch (catch &rest body)
+      (cofy catch)
+        (format nil "try~acatch(~a)" (block-c body) catch))
 )
 
 
@@ -620,7 +621,7 @@ class c.
 class d/c
 operator op
 operator opr
-construct cx
+construct   cx
 destroy dx
 return r
 headers hh
@@ -678,8 +679,8 @@ decltemp t<>
 >>+ >>stream
 >>+ >>>
 addr memloc
-addr loc)
-
+addr loc
+try/catch t/c)
 
 
 ;; SYNONYMS

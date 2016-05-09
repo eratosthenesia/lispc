@@ -1085,7 +1085,8 @@ You'll notice that `mpi/comm/size` compiles to `MPI_Comm_size` and that `cuda/de
 | >>+ | stream>> |
 | >>+ | >stream |
 | >>+ | >>stream |
-| >>+ | >>>) |
+| >>+ | >>> |
+| try-catch | t/c |
 
 ### CUDA
 
