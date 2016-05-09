@@ -498,7 +498,7 @@ This compiles to a `?:` statement. It compiles directly to `(`test`)?:(`if-true`
 Like the above, but compiles to an if statement.
 
 ### `(cond` {`(`condition if-true`)`}* `)`
-Works like the `cond` statement in **LISP**, but for **C**. Does this with a series of if-else statements.
+Works like the `cond` statement in **LISP**, but for **C**. Does this with a series of if-else statements. The *if-true* above is a series of statements, not just one.
 
 ### `(main` {statements}* `)`
 Creates the main function.
