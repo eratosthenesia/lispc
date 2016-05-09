@@ -260,7 +260,7 @@
         (<<= :l t :nyms (<<= l-shift-eq shift-left-eq shl-eq l-shift= shift-left= shl=))
         (>>  :r t :nyms (>> r-shift shift-right shr))
         (>>= :l t :nyms (>>= r-shift-eq shift-right-eq shr-eq >>= r-shift= shift-right= shr=))
-        (->  :nparen t :nyms (-> slot))
+        (-> :nrp t :nym ->) (-> :nrp t :nym slot)
         (#\. :nrp t :nym mem) (#\. :nrp t :nym .>)) ;; fix this bug
 
 (preposts (++ :post nil :nyms (++  inc +inc incr pre++ +1 ++n))
@@ -634,12 +634,52 @@
 'mpi/get/processor/name "MPI_Get_processor_name"
 
 
+;;; PTHREADS API
+`pthread/create               "pthread_create"
+`pthread/equal                "pthread_equal"
+`pthread/exit                 "pthread_exit"
+`pthread/join                 "pthread_join"
+`pthread/self                 "pthread_self"
+`pthread/mutex/init           "pthread_mutex_init"
+`pthread/mutex/destroy        "pthread_mutex_destroy"
+`pthread/mutex/lock           "pthread_mutex_lock"
+`pthread/mutex/trylock        "pthread_mutex_trylock"
+`pthread/mutex/unlock         "pthread_mutex_unlock"
+`pthread/cond/init            "pthread_cond_init"
+`pthread/cond/destroy         "pthread_cond_destroy"
+`pthread/cond/wait            "pthread_cond_wait"
+`pthread/cond/timedwait       "pthread_cond_timedwait"
+`pthread/cond/signal          "pthread_cond_signal"
+`pthread/cond/broadcast       "pthread_cond_broadcast"
+`pthread/once                 "pthread_once"
+`pthread/key/create           "pthread_key_create"
+`pthread/key/delete           "pthread_key_delete"
+`pthread/setspecific          "pthread_setspecific"
+`pthread/getspecific          "pthread_getspecific"
+`pthread/cleanup/push         "pthread_cleanup_push"
+`pthread/cleanup/pop          "pthread_cleanup_pop"
+`pthread/attr/init            "pthread_attr_init"
+`pthread/attr/destroy         "pthread_attr_destroy"
+`pthread/attr/getstacksize    "pthread_attr_getstacksize"
+`pthread/attr/setstacksize    "pthread_attr_setstacksize"
+`pthread/attr/getdetachstate  "pthread_attr_getdetachstate"
+`pthread/attr/setdetachstate  "pthread_attr_setdetachstate"
+`flockfile                    "flockfile"
+`ftrylockfile                 "ftrylockfile"
+`funlockfile                  "funlockfile"
+`getc/unlocked                "getc_unlocked"
+`getchar/unlocked             "getchar_unlocked"
+`putc/unlocked                "putc_unlocked"
+`putc/unlocked                "putc_unlocked"
+`pthread/detach               "pthread_detach"
+
 ;;; BASIC STUFF
 'null "NULL"
 'arg/c "argc"
 'arg/count "argc"
 'arg/v "argv"
 'arg/values "argv"
+'size/t "size_t"
 'integer "int"
 'integer+ "long"
 'natural "unsigned int"
