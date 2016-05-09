@@ -156,7 +156,7 @@ This is the same thing as `(nth 2 3 4)` and evaluates to `(foo)[2][3][4]`. It us
 ### The `=` Notation
 This is in case you want camelcase. `(=this is a test)` compiles to `ThisIsATest` (as do `(=this is a test)`, `(=this "is-a" test)`, and `(=this-is a-test)`). This is one of two cases where `"..."` are *not* literal.
 
-### The '%' notation
+### The `%` notation
 Exactly the same as above, but the first letter is not capitalized. Viz., `(%this is a test)` turns out to be `thisIsATest`.
 
 ### Thing Names
