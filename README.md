@@ -745,6 +745,18 @@ This creates a simple funcall-type structure, but is meant to be used with `defi
 ### `(define` definer definee `)`
 Makes a `#define` statement in **C** with *definer* being the dirst argument and *definee* being the second argument.
 
+### `(ifdef/ifndef` expr `)`
+Creates an `#ifdef`/`#ifndef` statement.
+
+### `(if#` expr `)`
+Creates an `#if` statement.
+
+### `(else#)`
+Creates an `#else` statement.
+
+### `(endif)`
+Creates an `#endif` statement.
+
 ### `(pragma` {statements}* `)`
 Makes a `#pragma` statement in **C** with each statement seperated by a space.
 
@@ -798,6 +810,12 @@ This does not quite work as well as it should yet <sup><sub>**TODO**</sub></sup>
 
 ### `(cuda/shared` variable `)`
 Creates a cuda `__shared__` variable.
+
+### `(funcall` func {arguments}* `)`
+Calls the function `func` on the *arguments*
+
+### `(apply` func arguments `)`
+Calls the function `func` on the *arguments*
 
 ## A List of **C++** Functions
 
@@ -981,8 +999,77 @@ Can be written in **LISP**/**c** as (with the *Synonyms* below):
         (@print-list ({}s 10 20 30))
         (return 0))
 
-And the way a class is declared is the following:
+Here's another **C++** example (adapted from [here](http://www-h.eng.cam.ac.uk/help/tpl/languages/C++/buildingclasses1.html)):
 
+	(h+ iostream)
+	(using std)
+	(t<> !T class nil
+		(c. vec
+			(pu.
+				(cx ((f1 !T) (f2 !T)) ((x f1) (y f2)))
+				(cx)
+				(v x !T) (v y !T)
+				(op + vec ((v (t& vec) () const))
+					(v result vec)
+					(!! abc(z) (= (.> result z) (+ (-> this z) (.> v1 z))))
+					(abc x) (abc y)
+					(return result)))))
+	(t<> !T class nil
+		(op << (t& ostream) ((stream (t& ostream))(v (<> vec !T)))
+		(<<+ cout (s. "(") (.> v x) (s. ",") (.> v y) (s. ")"))))
+	(main
+		(v (@v1 3 6) (<> vec int))
+		(v (@v2 2 -2) (<> vec int))
+		(v v3 (<> vec int) (+ v1 v2))
+		(<<+ cout (s. "v3 = ") v3 endl)
+		
+		(v (@v4 1.2 3.4) (<> vec float))
+		(v (@v5 2.6 7.13) (<> vec float))
+		(v v6 (<> vec float) (+ v4 v5))
+		(<<+ cout (s. "v6 = ") v6 endl)
+		(return 0))
+		
+After some cleanup, this compiles to:
+
+	#include<iostream>
+	using namespace std;
+	template <class T>
+	class vec
+	{
+	public:
+	  vec(T f1,T f2) : x(f1), y(f2)
+	  {
+	  };
+	  vec()
+	  {
+	  };
+	  T x;
+	  T y;
+	  vec operator+(const vec& v)
+	  {
+	    vec result;
+	    (((result).x)=((((this)->x)+((v1).x))));
+	    (((result).y)=((((this)->y)+((v1).y))));
+	    return result;
+	  };
+	};
+	template <class T>
+	ostream& operator<<(ostream& stream, vec<T> v)
+	{
+	  cout << "(" << (v).x << "," << (v).y << ")";
+	};
+	int main(int argc,char **argv)
+	{
+	  vec<int> v1(3,6);
+	  vec<int> v2(2,-2);
+	  vec<int> v3=((v1)+(v2));
+	  cout << "v3 = " << v3 << endl;
+	  vec<float> v4(1.2,3.4);
+	  vec<float> v5(2.6,7.13);
+	  vec<float> v6=((v4)+(v5));
+	  cout << "v6 = " << v6 << endl;
+	  return 0;
+	};
 
 
 ## What's With the Slashes?
@@ -1013,11 +1100,15 @@ You'll notice that `mpi/comm/size` compiles to `MPI_Comm_size` and that `cuda/de
 | -# | # |
 | -## | ## |
 | -va-args- | <sup><sub> _ _ </sub></sup> VA_ARGS <sup><sub> _ _ </sub></sup> |
+| -empty- | " " |
 
 ### For Convenience
 
 | Term | Replacement |
 | --- | --- |
+| -- | " " |
+| $ | **nil**/**()** |
+| @ | " " |
 | namespace | n/s |
 | namespace | ns |
 | typ* | t* |
@@ -1026,7 +1117,7 @@ You'll notice that `mpi/comm/size` compiles to `MPI_Comm_size` and that `cuda/de
 | ptr& | p& |
 | ptr& | var& |
 | var | v |
-| defclass | c. |
+| class | c. |
 | defclass | d/c |
 | operator | op |
 | operator | opr |
@@ -1065,6 +1156,13 @@ You'll notice that `mpi/comm/size` compiles to `MPI_Comm_size` and that `cuda/de
 | templates | !!! |
 | template | t. |
 | templates | t.. |
+| camelcase | camel |
+| lcamelcase | lcamel |
+| capitalize | cap |
+| uncapitalize | !cap |
+| lowercase | lcase |
+| uppercase | ucase |
+| dashify | -ify |
 | comment | cmt |
 | comment | z |
 | comment | /* |

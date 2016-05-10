@@ -54,6 +54,18 @@
       (if (eq 1 n) (f/list x)
           (mapcar #'(lambda (y) (f/list/n y (1- n))) (f/list x)))))
 
+(defmacro decr (x)
+  `(setf ,x (1- ,x)))
+
+(defun f/list//n (x &optional (n 1))
+    (if (<= n 0) x
+        (if (atom x)
+            (list (f/list//n x (1- n)))
+            (if (null (cdr x))
+            (list (f/list//n (car x) (- n 2)))
+            (list (f/list//n x (1- n)))))))
+
+
 (defun strsof (xs)
   (format nil "~{~a~}" xs))
 
@@ -206,15 +218,15 @@
 (defun symtrim (x n)
   (read-from-string (subseq (strof x) n)))
 
-(defun capitalize (str)
+(defun capitalize-c (str)
   (format nil "~a~a"
-          (string-upcase (char str 0))
-          (string-downcase (subseq str 1))))
+          (string-upcase (char (strof str) 0))
+          (string-downcase (subseq (strof str) 1))))
 
 (defun uncapitalize-c (str)
   (format nil "~a~a"
-          (string-downcase (char str 0))
-          (subseq str 1)))
+          (string-downcase (char (strof str) 0))
+          (subseq (strof str) 1)))
 
 (defun flatten (xs)
   (if (atom xs) (list xs) (mapcan #'flatten xs)))
@@ -233,10 +245,24 @@
   (remove-if #'(lambda (x) (eq (length x) 0))
              (mapcar #'chs->str (divide-at (str->chs str) ch))))
 
+(defun lowercase-c (&rest strs)
+  (format nil "~{~a~}" (mapcar #'string-downcase (mapcar #'strof strs))))
+
+(defun uppercase-c (&rest strs)
+  (format nil "~{~a~}" (mapcar #'string-upcase (mapcar #'strof strs))))
+
 (defun camelcase-c (&rest strs)
   (setf strs
-        (flatten (mapcan #'(lambda (x) (split-str x #\-)) strs)))
-  (format nil "~{~a~}" (mapcar #'capitalize strs)))
+        (flatten (mapcan #'(lambda (x) (split-str x #\-)) (mapcar #'strof strs))))
+  (format nil "~{~a~}" (mapcar #'capitalize-c strs)))
+
+(defun dashify-c (&rest strs)
+  (format nil "~{~a~^-~}" (mapcar #'cof strs)))
+
+(defun lcamelcase-c (&rest strs)
+  (setf strs
+        (flatten (mapcan #'(lambda (x) (split-str x #\-)) (mapcar #'strof strs))))
+  (format nil "~a~{~a~}" (string-downcase (car strs)) (mapcar #'capitalize-c (cdr strs))))
 
 (defun cof (x)
   (if (null x)
@@ -256,7 +282,7 @@
                         (#\^ (apply #'cast-c (cof (symtrim (car x) 1)) (cdr x)))
                         (#\* (apply #'ptr-c (cof (symtrim (car x) 1)) (cdr x)))
                         (#\= (apply #'camelcase-c (strof (symtrim (car x) 1)) (mapcar #'strof (cdr x))))
-                        (#\% (uncapitalize-c (apply #'camelcase-c (strof (symtrim (car x) 1)) (mapcar #'strof (cdr x)))))
+                        (#\% (apply #'lcamelcase-c (strof (symtrim (car x) 1)) (mapcar #'strof (cdr x))))
                         (otherwise (apply (cnym (car x)) (cdr x))))
                   (apply (cnym (car x)) (cdr x)))
               (format nil "~{~a~^~(;~%~)~}" (mapcar #'cof x))))))
@@ -410,7 +436,12 @@
  (var (x &optional type init &rest modifiers)
       (cofy x)
       (cofy type)
-      (format nil "~a~a ~{~a~^,~}~a" (if modifiers (format nil "~{~a ~}" (mapcar #'cof modifiers))    "") type (f/list x) (if init (format nil "=~a" (cof init)) "")))
+      (format nil "~a ~a~{~a~^,~}~a"
+              (if modifiers
+                  (format nil "~{~a~^ ~}" (mapcar #'cof modifiers))
+                  "")
+              (if type (format nil "~a " type) "")
+              (f/list x) (if init (format nil "=~a" (cof init)) "")))
  (vars (x &optional (inter #\,) (newline t))
        (setf x (mapcar #'(lambda (y) (apply #'var-c (f/list y))) (f/list/n x 1)))
        (format nil (format nil "~~{~~a~~^~(~a~a~)~~}" inter (if newline #\Newline "")) x))
@@ -434,11 +465,13 @@
               (setf preq " const ")
               (setf lines (cdr lines))))
    (format nil "~a~a~%~{   ~a~^~(;~%~)~};~%~a" preq (if bracket #\{ "")  (mapcar #'cof (f/list lines)) (if bracket #\} "") )))
- (func (nym typ &optional vars &rest body)
+ (func (nym &optional typ vars &rest body)
        (cofy nym)
        (cofy typ)
        (format nil "~a ~a(~a)~a" typ nym (vars-c vars #\, nil)
 	       (if body (block-c body) "")))
+ (inline (arg)
+         (format nil "inline ~a" (cof arg)))
  (cuda/global (&rest args)
         (format nil "__global__ ~a" (apply #'func-c args)))
  (cuda/device (&rest args)
@@ -475,6 +508,19 @@
      (cofy a)
    (cofy b)
    (format nil "#define ~a ~a~%" a b))
+ (ifdef (expr)
+        (cofy expr)
+      (format nil "#ifdef ~~%" expr))
+ (ifndef (expr)
+        (cofy expr)
+      (format nil "#ifndef ~~%" expr))
+ (if# (expr)
+        (cofy expr)
+      (format nil "#if ~a~%" expr))
+ (else# ()
+       "#else~%")
+ (endif ()
+        "#endif~%")
  (pragma (&rest xs)
          (cofsy xs)
          (format nil "#pragma ~{~a~^ ~}" xs))
@@ -519,8 +565,12 @@
  (cuda/dim/grid (x y)
 		(cuda/dim3-c 'dim/grid x y))
  (cuda/shared (&rest xs)
-    (format nil "__shared__ ~a" (apply #'var-c xs))))
-
+    (format nil "__shared__ ~a" (apply #'var-c xs)))
+ (funcall (func &rest args)
+    (apply (cnym func) args))
+ (apply (func args)
+    (apply (cnym func) args))
+)
 ;; C++ Stuff
 (cfuns
   (headers++ (&rest xs)
@@ -528,6 +578,9 @@
   (namespace (&rest terms)
       (cofsy terms)
       (format nil "~{~a~^~(::~)~}" terms))
+  (namespacedecl (nym &rest terms)
+     (cofy nym)
+      (format nil "namespace ~a~a" nym (block-c terms)))
   (typ& (nym &optional (n 1))
       (cofy nym)
       (format nil "~a~a" nym (repeatn #\& n)))
@@ -552,7 +605,7 @@
             (cof '***curr-class***)
             (vars-c args)
             (if init-pairs
-                (format nil " : ~{~a~^ ~}"
+                (format nil " : ~{~a~^~(, ~)~}"
                     (mapcar #'(lambda (xs)
                         (format nil "~a(~a)"
                                 (cof (car xs))
@@ -565,11 +618,11 @@
             (cof '***curr-class***)
             (vars-c args)
             (block-c code)))
-  (operator (oper typ &optional args &rest code)
+  (operator (oper &optional typ args &rest code)
     (let ((opr "operator"))
             (cofy typ)
             (if (listp oper)
-                (if (eq (car oper) 'ns)
+                (if (member (car oper) '(ns namespace n/c))
                     (progn
                       (setf opr
                           (apply
@@ -578,21 +631,30 @@
                       (setf oper (car (last oper))))))
             (setf oper (string-downcase (strof oper))) 
       (format nil "~a ~a~a~a(~a)~a"
-              typ opr (if (alphap (char (strof oper) 0)) " " "") oper (vars-c args) (block-c code))))
+              typ opr (if (alphap (char (strof oper) 0)) " " "") oper (vars-c args) (if code (block-c code) ""))))
   (friend (code)
     (cofy code)
     (format nil "friend ~a" code))
   (decltemp (&optional var typ &rest code)
-      (let ((ortypvar (or typ var)))
-      (cofy typ) (cofy var)
-      (format nil "template~a~a" (if ortypvar
-                      (format nil "<~a ~a>" typ var) "<>")
-              (if code (block-c code nil) ""))))
-  (temp (&optional var typ)
-        (cofy var) (cofy typ)
-        (format nil "~a<~a>" var typ))
+      (if (listp var)
+            (setf var (mapcar #'f/list var))
+          (progn
+            (setf var (f/list/n (list (list var typ))))
+            (setf typ (car code))
+            (setf code (cdr code))))
+      (cofy typ)
+      (setf var (format nil "~{~a~^,~}"
+                          (mapcar #'(lambda (pair) (format nil "~{~a~^ ~}"  (reverse (mapcar #'cof pair)))) var)))
+      (format nil "template ~a~{~^ ~a~}" (if (or typ var)
+                      (format nil "~a<~a>" typ var) "<>")
+              (if code (mapcar #'cof code) '(""))))
+  (temp (&optional var &rest typs)
+        (cofy var) (cofsy typs)
+        (format nil "~a<~{~a~^,~}>" var typs))
   (using (namespace)
          (format nil "using namespace ~a" (cof namespace)))
+  (usevar (&rest args)
+          (format nil "~a" (apply #'var-c (car args) 'using (cdr args))))
   (comment++ (&rest comments)
              (cofsy comments)
              (format nil "//~{~a~^ ~}" comments))
@@ -602,6 +664,11 @@
   (try/catch (catch &rest body)
       (cofy catch)
         (format nil "try~acatch(~a)" (block-c body) catch))
+  (strlit (&rest xs)
+          (format nil "~a" (apply #'str-c xs)))
+  (explicit (&rest xs)
+      (cofsy xs)
+      (format nil "explicit ~{~a~}"))
 )
 
 
@@ -657,6 +724,13 @@ template !!
 templates !!!
 template t.
 templates t..
+camelcase camel
+lcamelcase lcamel
+capitalize cap
+uncapitalize !cap
+lowercase lcase
+uppercase ucase
+dashify -ify
 comment cmt
 comment z
 comment /*
@@ -680,7 +754,14 @@ decltemp t<>
 >>+ >>>
 addr memloc
 addr loc
-try/catch t/c)
+try/catch t/c
+using u.
+usevar uv
+usevar use
+namespacedecl ns/d
+namespacedecl n/s/d
+namespacedecl ns{}
+namespacedecl n/s{})
 
 
 ;; SYNONYMS
@@ -921,7 +1002,11 @@ try/catch t/c)
 '---        "..."
 '-#         "#"
 '-##        "##"
-`-va-args-  "__VA_ARGS__")
+'-va-args-  "__VA_ARGS__"
+'-empty-    " "
+'--         " "
+'$          nil
+`@          " ")
 
 (defun count-lines-in-file (filename)
   (let ((n 0))
