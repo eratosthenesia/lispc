@@ -77,7 +77,7 @@ If you know what you're doing, you can use `lispmacro`s. One useful example is t
 
     (lispmacro class (nym vars)
       (c `(progn
-            (typedef ,nym ,nym)
+            (typedef (struct,nym) ,nym)
             (struct ,nym ,vars))))
 
 Then you can write code like
@@ -89,7 +89,7 @@ Then you can write code like
 
 And have it compile to (after cleaning it up a bit):
 
-    typedef cell cell;  
+    typedef struct cell cell;  
     struct cell{
         cell *car;
         cell *cdr;
@@ -1016,7 +1016,8 @@ Here's another **C++** example (adapted from [here](http://www-h.eng.cam.ac.uk/h
 					(return result)))))
 	(t<> !T class nil
 		(op << (t& ostream) ((stream (t& ostream))(v (<> vec !T)))
-		(<<+ cout (s. "(") (.> v x) (s. ",") (.> v y) (s. ")"))))
+		(<<+ cout (s. "(") (.> v x) (s. ",") (.> v y) (s. ")"))
+		(return stream)))
 	(main
 		(v (@v1 3 6) (<> vec int))
 		(v (@v2 2 -2) (<> vec int))
@@ -1048,8 +1049,8 @@ After some cleanup, this compiles to:
 	  vec operator+(const vec& v)
 	  {
 	    vec result;
-	    (((result).x)=((((this)->x)+((v1).x))));
-	    (((result).y)=((((this)->y)+((v1).y))));
+	    (((result).x)=((((this)->x)+((v).x))));
+	    (((result).y)=((((this)->y)+((v).y))));
 	    return result;
 	  };
 	};
@@ -1057,6 +1058,7 @@ After some cleanup, this compiles to:
 	ostream& operator<<(ostream& stream, vec<T> v)
 	{
 	  cout << "(" << (v).x << "," << (v).y << ")";
+	  return stream;
 	};
 	int main(int argc,char **argv)
 	{
