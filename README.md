@@ -77,7 +77,7 @@ If you know what you're doing, you can use `lispmacro`s. One useful example is t
 
     (lispmacro class (nym vars)
       (c `(progn
-            (typedef (struct,nym) ,nym)
+            (typedef (struct ,nym) ,nym)
             (struct ,nym ,vars))))
 
 Then you can write code like
