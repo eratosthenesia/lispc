@@ -46,7 +46,7 @@ But really, to see why you might like to use __LISP__/__c__, check out a few exa
 
 ## An Example
 
-Suppose that you're writing a function that you'd like to write for several different types of vaariable types that use similar notation. You can do this easily with the templates built into **LISP**/**c**:
+Suppose that you're writing a function that you'd like to write for several different types of variable types that use similar notation. You can do this easily with the templates built into **LISP**/**c**:
 
     int foo_int(int x, int y) {
       return x + y * 2;
