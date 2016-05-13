@@ -40,7 +40,7 @@ First, you might check out [this video](https://www.facebook.com/jbakid/posts/10
 
 First let's discuss if you *can* use it. Not to be elitist (I wish everyone would use this tool), but you **must** know both **C** and **LISP** fairly well to be able to use __LISP__/__c__.
 
-Suppose, however, that you do already know both __LISP__ and __C__ pretty well. You might want to use __LISP__/__c__ because it features access to __LISP__ to write __C__ code obth implicitly and explicity. You might also want to use it if you like writing **CUDA** code, because it has built-in support for **CUDA** as well.
+Suppose, however, that you do already know both __LISP__ and __C__ pretty well. You might want to use __LISP__/__c__ because it features access to __LISP__ to write __C__ code both implicitly and explicity. You might also want to use it if you like writing **CUDA** code, because it has built-in support for **CUDA** as well.
 
 But really, to see why you might like to use __LISP__/__c__, check out a few examples, and feel free to skip around a little.
 
