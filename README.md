@@ -8,7 +8,7 @@ To install, simply go into the directory that you downloaded everything into, ru
 
 ## Resources
 
-To learn **C**, I recommend *The C Programming Language* by **Brian W. Kernighan** (ISBN-10 0131103628, ISBN-13 978-0131103627). TO learn **LISP**, I recommend *Practical Common Lisp* by **Peter Seibel**. This can be found either [here](www.gigamonkeys.com/book/) or as a hard copy (ISBN-10 1590592395, ISBN-13 978-1590592397). Also, it is currently required that you use **CLISP** to run the code here.. This will change <sup><sub>**TODO**</sub></sup>.
+To learn **C**, I recommend *The C Programming Language* by **Brian W. Kernighan** (ISBN-10 0131103628, ISBN-13 978-0131103627). TO learn **LISP**, I recommend *Practical Common Lisp* by **Peter Seibel**. This can be found either [here](http://www.gigamonkeys.com/book/) or as a hard copy (ISBN-10 1590592395, ISBN-13 978-1590592397). Also, it is currently required that you use **CLISP** to run the code here.. This will change <sup><sub>**TODO**</sub></sup>.
 
 To learn **CUDA**, I recommend the resources found [here](https://developer.nvidia.com/cuda-education-training), and to learn **MPI**, I recommend the resources found [here](http://mpitutorial.com/tutorials/).
 
