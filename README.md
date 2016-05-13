@@ -98,7 +98,7 @@ And have it compile to (after cleaning it up a bit):
 
 ### Arithmetic
 
-In the amove example, you'll notice that we use prefix arithmetic. This is a feature of **LISP** and not of **C**. The benefit of using prefix arithmetic is that it allows you to express sums of many terms somewhat more succinctly. That is to say, instead of
+In the above example, you'll notice that we use prefix arithmetic. This is a feature of **LISP** and not of **C**. The benefit of using prefix arithmetic is that it allows you to express sums of many terms somewhat more succinctly. That is to say, instead of
 `2 + 3 + 4 + 5 * 6 + 7 + 8` you can just write `(+ 2 3 4 (* 5 6) 7 8)`.
 
 ### Functions
