@@ -457,8 +457,8 @@ Here is an adapted version of NVIDIA's code for the Julia set:
 
 This generates the following **C** code (after being cleaned up):
     
-    #include "../common/book.h.h"
-    #include "../common/cpu_bitmap.h.h"
+    #include "../common/book.h"
+    #include "../common/cpu_bitmap.h"
 
     #define DIM 1000
     
