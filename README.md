@@ -377,8 +377,8 @@ Hopefully this is fairly self-explanatory. Finally, we write the main function:
 Here is an adapted version of NVIDIA's code for the Julia set:
 
     (headers
-        ("../common/book.h" :local t)
-        ("../common/cpu_bitmap.h" :local t))
+        ("../common/book" :local t)
+        ("../common/cpu_bitmap" :local t))
     
     (template sq (x) (* x x))
     (define !dim 1000)
