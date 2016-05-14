@@ -40,7 +40,7 @@ First, you might check out [this video](https://www.facebook.com/jbakid/posts/10
 
 First let's discuss if you *can* use it. Not to be elitist (I wish everyone would use this tool), but you **must** know both **C** and **LISP** fairly well to be able to use __LISP__/__c__.
 
-Suppose, however, that you do already know both __LISP__ and __C__ pretty well. You might want to use __LISP__/__c__ because it features access to __LISP__ to write __C__ code both implicitly and explicity. You might also want to use it if you like writing **CUDA** code, because it has built-in support for **CUDA** as well.
+Suppose, however, that you do already know both __LISP__ and __C__ pretty well. You might want to use __LISP__/__c__ because it features access to __LISP__ to write __C__ code both implicitly and explicitly. You might also want to use it if you like writing **CUDA** code, because it has built-in support for **CUDA** as well.
 
 But really, to see why you might like to use __LISP__/__c__, check out a few examples, and feel free to skip around a little.
 
@@ -148,7 +148,7 @@ This is the same thing as `(nth 2 3 4)` and evaluates to `(foo)[2][3][4]`. It us
 `(&foo)` is the same thing as `(addr foo)` and evaluates to `&(foo)`.
 
 ### The `^` Notation
-`(^foo bar baz)` is the same thing as `(cast foo bar baz)` and evalutates to (after cleanup) `(baz)(bar)(foo)`.
+`(^foo bar baz)` is the same thing as `(cast foo bar baz)` and evaluates to (after cleanup) `(baz)(bar)(foo)`.
 
 ### The `*` Notation
 `(*foo)` is the same thing as `(ptr foo)` which evaluates to `*foo`.
@@ -180,7 +180,7 @@ You'll notice that we used `<<+` instead of `<<`. This is because `<<+`, unlike 
 
 ## Variadic Example
 
-This is a simple function to add up a bunch of arguments that end in zero and are all itnegers.
+This is a simple function to add up a bunch of arguments that end in zero and are all integers.
 
 	(f{} add-em-up int (
 	(first int)
@@ -194,7 +194,7 @@ This is a simple function to add up a bunch of arguments that end in zero and ar
 		(+= sum cur))
 	(return sum))
 
-You'll notice that instead of `func` we used `f{}`. This is shorthand. A table of shorthand is avaiable nearer the bottom of the page.
+You'll notice that instead of `func` we used `f{}`. This is shorthand. A table of shorthand is available nearer the bottom of the page.
 	
 ## Complex C++ Code
 Let's say we wanted to enter the following code into **LISP**/**c**:
@@ -329,7 +329,7 @@ Next, we know that we're going to want to create and then join a bunch of thread
 
 We'll finish this in a moment. I changed up the capitalization again just to make it crystal clear that *that is a thing you can do and must be aware of*. Here, `n` will be the number of iterations, `v` will be the variable that we're keeping track with, `maxv` will be a temporary variable that we store `n` in (so that if we need to calculate `n` we're not doing it every time), and `body` is the body of the `for` loop.
 
-FInishing up the function, we yield:
+Finishing up the function, we yield:
 
     (TEMPLATE Loop-N (n v maxv body)
         (block (
@@ -652,7 +652,7 @@ Creates a `while` statement.
 Creates a `do...while` statement, but puts the test at the end where it belongs.
 
 ### `(switch` variable {value if-equal {break}?}* `)`
-This creates a switch statement. There is no special treatment of the `default` clause. If any of the tuples cntaining the value and the if-equal statement has a third argument (which it does not have to), and that value is anything other than `nil`, it puts a `break;` statement into the compiled **C**.
+This creates a switch statement. There is no special treatment of the `default` clause. If any of the tuples containing the value and the if-equal statement has a third argument (which it does not have to), and that value is anything other than `nil`, it puts a `break;` statement into the compiled **C**.
 
 ### `(ptr` x {n (default = 1)}? `)`
 This dereferences `x` `n` times. For example `(ptr a 2)` compiles to `**(a)`.
@@ -670,7 +670,7 @@ This uses the same syntax as `nth`, but does not put parenthesis around the *val
 This simply calls function-name with arguments.
 
 ### `(cuda/call` function-name spec-list {arguments}* `)`
-This calls the **CUDA** function with the name *function-name* with the specifications *spec-list*. For exmaple, `(cuda/call foo (16 32) a b c)` compiles to `foo<<<16,32>>>(a,b,c)`.
+This calls the **CUDA** function with the name *function-name* with the specifications *spec-list*. For example, `(cuda/call foo (16 32) a b c)` compiles to `foo<<<16,32>>>(a,b,c)`.
 
 ### `(str` {values}* `)`
 This strings together all the values with spaces between them and formats them as a `cstring`. Like `(str a b "cDe")` compiles to `"a b cDe"`.
@@ -685,7 +685,7 @@ This casts *value* as *type*, and if *types* are specified, then if casts them a
 A bunch of variables, comma-separated, with the arguments to each one supplied by an entry in *specs-lists*.
 
 ### `(varlist` ... `)`
-Uses the same syntax as `vars`, but puts semicolons between the variable delcarations.
+Uses the same syntax as `vars`, but puts semicolons between the variable declarations.
 
 ### `(struct` struct-name ({variables}*) `)`
 Creates a structure named *struct-name* with variables *variables*. For example:
@@ -734,16 +734,16 @@ This creates an enum with the name *enum-name* and specifications *specs*. For e
 Outputs name.h.
 
 ### `(include` name {`local:` local (default = nil)}? `)`
-Includes a .c or .h file with the name *name*. If local is spcified, then `"` are used instead of `<>`.
+Includes a .c or .h file with the name *name*. If local is specified, then `"` are used instead of `<>`.
 
 ### `(import` filename `)`
-Imports a .cl file with name *fllename* (if *filename* is not a string, then `.cl` is appended). This is the **LISP**/**c** version of `#include`. So far, it does not keep track of directories, so all files included, including files included in files included must be in the same directory. <sup><sub>**TODO**</sub></sup>
+Imports a .cl file with name *filename* (if *filename* is not a string, then `.cl` is appended). This is the **LISP**/**c** version of `#include`. So far, it does not keep track of directories, so all files included, including files included in files included must be in the same directory. <sup><sub>**TODO**</sub></sup>
 
 ### `(macro` macro-name {macro-args}* `)`
-This creates a simple funcall-type structure, but is meant to be used with `define`. It was defined early on in devlopment and may be phased out.
+This creates a simple funcall-type structure, but is meant to be used with `define`. It was defined early on in development and may be phased out.
 
 ### `(define` definer definee `)`
-Makes a `#define` statement in **C** with *definer* being the dirst argument and *definee* being the second argument.
+Makes a `#define` statement in **C** with *definer* being the first argument and *definee* being the second argument.
 
 ### `(ifdef/ifndef` expr `)`
 Creates an `#ifdef`/`#ifndef` statement.
@@ -758,7 +758,7 @@ Creates an `#else` statement.
 Creates an `#endif` statement.
 
 ### `(pragma` {statements}* `)`
-Makes a `#pragma` statement in **C** with each statement seperated by a space.
+Makes a `#pragma` statement in **C** with each statement separated by a space.
 
 ### `(paren` term `)`
 Puts parentheses around *term*.
@@ -766,7 +766,7 @@ Puts parentheses around *term*.
 ### `(comment` {comments}* `)`
 *Comments*, separated by spaces, are put into a comment form like the following:
 
-THe following:
+The following:
 
     (comment this is "A Comment")
     (comment s this is "A Comment")
@@ -785,7 +785,7 @@ The reason why the second comment was shorter was because it began with an `s`.
 Same as `include`, but automatically adds a `.h` to the end of *name*.
 
 ### `(headers` argument-lists `)`
-Each argument in the argument list can be an atom, which will be assumed to be a list in the final phase of processing. For exmaple,
+Each argument in the argument list can be an atom, which will be assumed to be a list in the final phase of processing. For example,
 
     (headers foo (bar :local t))
     
@@ -828,7 +828,7 @@ Puts `#include` statements, but without appending `.h`.
 Puts a `::` between the terms with no parentheses.
 
 ### `(typ&` nym {n (default=1)}? `)`
-`(typ& foo 2)` will evaluate to `foo&&`, and `(typ& foo)` will evalutate to `foo&`.
+`(typ& foo 2)` will evaluate to `foo&&`, and `(typ& foo)` will evaluate to `foo&`.
 
 ### `(ptr&` ... `)`
 Uses same syntax as above, but `(ptr& foo 3)` will evaluate to `&&&foo`.
