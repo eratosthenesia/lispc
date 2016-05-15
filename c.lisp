@@ -94,14 +94,16 @@
 (defun alphap (x)
   (member (char-upcase x) (str->chs "ABCDEFGHIJKLMNOPQRSTUVWXYZ")))
 
-(defun c-strify (x)
+(defun c-strify (x &optional leavemostlyalone)
   (if (stringp x) x
       (let ((s (strof x)))
+        (if leavemostlyalone
+            (string-downcase s)
 	(if (numeric-string s) s
 	    (if (eq (char s 0) #\!) (replace-char #\- #\_ (cof (subseq s 1)))
          (if (eq (char s 0) #\=) (camelcase-c (cof (subseq s 1)))
          (if (eq (char s 0) #\-) (Lcamelcase-c (cof (subseq s 1)))
-		(replace-char #\- #\_ (string-downcase s)))))))))
+		(replace-char #\- #\_ (string-downcase s))))))))))
 
 (defmacro sethash (k v hash)
   `(setf (gethash ,k ,hash) ,v))
@@ -176,6 +178,8 @@
 		     (format nil "~a~a~a" ,lp (cof (car xs)) ,rp)
 		     (format nil "~a~a~a~a~a~a~a" ,lp (apply (function ,(cnym nym)) (butlast xs)) ',oper ,lp (cof (car (last xs))) ,rp ,rp))))))
 
+(defun parenify (x)
+  (format nil "(~a)" x))
 
 (defmacro binop (oper &key nlp nrp nym nyms l r nparen)
   ;;; (format t "OPER:~a NYM:~a NYMS:~a NPAREN:~a~%" oper nym nyms nparen)
@@ -711,6 +715,18 @@
       (cofy nym)
     (csyn '***curr-class*** nym)
       (format nil "struct ~a~a" nym (if xs (block-c xs) "")))
+  (lambda++ (&optional capture-list params attribs ret &rest body)
+            (setf capture-list (mapcar #'(lambda (x) (c-strify x t)) capture-list))
+            (setf attribs (mapcar #'(lambda (x) (c-strify x t)) (f/list attribs)))
+            (cofsy attribs)
+      (format nil "[~{~a~^,~}]~a~{~^ ~a~}~a~a"
+              capture-list
+              (if (or params attribs) (parenify (vars-c params #\, nil)) "")
+              attribs
+              (if ret
+                  (format nil " -> ~a " (cof ret)) "")
+              (block-c body)))
+              
   (namespace (&rest terms)
       (cofsy terms)
       (format nil "~{~a~^~(::~)~}" terms))
