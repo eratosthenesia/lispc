@@ -711,17 +711,20 @@
 (cfuns
   (headers++ (&rest xs)
       (format nil "~{#include<~a>~%~}" (mapcar #'cof xs)))
+  (tridot (x)
+          (cofy x)
+          (format nil "~a..." x))
   (struct++ (nym &rest xs)
       (cofy nym)
     (csyn '***curr-class*** nym)
       (format nil "struct ~a~a" nym (if xs (block-c xs) "")))
   (lambda++ (&optional capture-list params attribs ret &rest body)
-            (setf capture-list (mapcar #'(lambda (x) (c-strify x t)) capture-list))
+            (setf capture-list (mapcar #'(lambda (x) (c-strify x t)) (f/list capture-list)))
             (setf attribs (mapcar #'(lambda (x) (c-strify x t)) (f/list attribs)))
             (cofsy attribs)
       (format nil "[~{~a~^,~}]~a~{~^ ~a~}~a~a"
               capture-list
-              (if (or params attribs) (parenify (vars-c params #\, nil)) "")
+              (if (or params attribs ret) (parenify (vars-c params #\, nil)) "")
               attribs
               (if ret
                   (format nil " -> ~a " (cof ret)) "")
@@ -924,7 +927,9 @@ usevar use
 namespacedecl ns/d
 namespacedecl n/s/d
 namespacedecl ns{}
-namespacedecl n/s{})
+namespacedecl n/s{}
+tridot t---
+lambda++ l+)
 
 
 ;; SYNONYMS
@@ -1225,6 +1230,31 @@ namespacedecl n/s{})
     (if s
   (with-open-file (c-file-stream fileout :direction :output :if-does-not-exist :create)
     (format c-file-stream "~a" s)))))
+
+(defun elapsed-time (sec)
+  (let* ((min (floor (/ (floor sec) 60)))
+         (hr  (floor (/ min 60)))
+         (day (floor (/ hr  24))))
+    (setf sec (floor sec))
+    (setf sec (mod sec 60))
+    (setf min (mod min 60))
+    (setf hr (mod hr 24))
+    (format nil "~a~a~2,'0d:~2,'0d"
+            (if (zerop day) "" (format nil "~a days, " day))
+            (if (zerop hr) "" (format nil "~2,'0d:" hr))
+            min sec)))
+
+(defun c-cl-file-continuous (filein &optional fileout ie (interval 1))
+  (format t "Press ^C to stop.")
+    (do ((i 0 (+ i interval))) (nil)
+        (progn
+          (format t "~&~a" (elapsed-time i))
+          (if ie
+              (ignore-errors (c-cl-file filein fileout))
+              (c-cl-file filein fileout))
+          (sleep interval))
+        ))
+      
 
 (defun compile-cl-file (filein &key fileout tags libs c-file cc)
   (def fileout "a.out")
