@@ -96,6 +96,41 @@ And have it compile to (after cleaning it up a bit):
         void *etc;
     };
 
+### The `lisp/c-macro`
+
+This is a form of the template which allows you to write macros directly, more or less. To give you a taste of how this works, we'll start with an example:
+
+	(lisp/c-macro for-m (vars nums &rest body)
+		(if (or (null vs) (null nums))
+			`(block ,body nil)  ;; "NIL" to get rid of extra {}s
+			`(for (var ,(car vars) int 0)
+				  (< ,(car vars) ,(car ns))
+				  (++ ,(car vars))
+				  ,(apply for-m (cdr vs) (cdr ns) body)))))
+
+We can now use this in the following manner:
+
+	(for-m (i j k l m) (3 3 3 4 5) (@printf (s. "%d %d %d %d %d") i j k l m))
+	
+This will compile to:
+
+	for(int i=0;((i)<(3));++(i))
+	{
+		for(int j=0;((j)<(3));++(j))
+		{
+			for(int k=0;((k)<(3));++(k))
+			{
+				for(int l=0;((l)<(4));++(l))
+				{
+					for(int m=0;((m)<(5));++(m))
+					{
+						   printf("%d %d %d %d %d",i,j,k,l,m);
+					};
+				};
+			};
+		};
+	}
+
 ### Arithmetic
 
 In the above example, you'll notice that we use prefix arithmetic. This is a feature of **LISP** and not of **C**. The benefit of using prefix arithmetic is that it allows you to express sums of many terms somewhat more succinctly. That is to say, instead of
@@ -136,7 +171,7 @@ The following are offered in order to simplify common tasks.
 
     (@foo 2 3 4)
 
-This is the same thing as `(call foo 2 3 4)` and evaluates to `foo(2,3,4)`. This is used to greatly simplify function calls. Use this whenever possible, since nobody wants to wade through a bunch of `call` statements. `call` is mainly useful for `template` statements.
+This is the same thing as `(call foo 2 3 4)` and evaluates to `foo(2,3,4)`. This is used to greatly simplify function calls. Use this whenever possible, since nobody wants to wade through a bunch of `call` statements. `call` is mainly useful for `template` statements. Note that if you put a space between the `foo` and `@`, this becomes `foo::2::3::4`.
 
 ### The `[]` Notation
 
@@ -158,6 +193,10 @@ This is in case you want camelcase. `(=this is a test)` compiles to `ThisIsATest
 
 ### The `%` notation
 Exactly the same as above, but the first letter is not capitalized. Viz., `(%this is a test)` turns out to be `thisIsATest`.
+
+### CamelCase
+
+If you really want camelcase and don't want to type parentheses in every time, you can use `=this-is-camelcase` and `-this-is-camelcase` almost anywhere to compile to `ThisIsCamelcase` and `thisIsCamelcase` respectively. So you can do something like `(-desert-oasis =camel-train -camel-same)` and expect it to compile to `CamelTrain desertOasis = camel_same`.
 
 ### Thing Names
 
@@ -303,7 +342,7 @@ This uses **gcc** to compile your file (at *file-in*). It takes a number of keyw
 ### `(compile-and-run-cl-file` ... `)`
 Uses the same syntax as `compile-cl-file`.
 
-### `(c-cl-file file-in c-file `)`
+### `(c-cl-file`	 file-in c-file `)`
 Compiles **LISP**/**c** code into **C** code from *file-in* to *c-file*.
 
 ### Other conventions

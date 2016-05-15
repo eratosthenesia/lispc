@@ -12,8 +12,50 @@
     (setf *macrolist* (make-hash-table))
     (setf *templatelist* (make-hash-table))))
 
- (setf ***C/LISP-SYSTEM-LOADED*** T)
+(setf ***C/LISP-SYSTEM-LOADED*** T)
 
+; ; returns (list key key-exists rest)
+; (defun getkey (lst key)
+;   (setf key (addsyms #\: key))
+  
+ 
+(defun replace-fn (old-fn new-fn form)
+(labels ((helper (form s)
+    (if (atom form)
+        (if (and s (eq form old-fn)) new-fn form)
+        (if (null form)
+            nil
+            (if (atom (car form))
+            (cond
+            ((eq (car form) 'function)
+                (cons 'function (helper (cdr form) t)))
+            ((eq (car form) 'quote)
+              (print (cadr form))
+                `(quote ,(cadr form)))
+            (t
+                (cons (helper (car form) t)
+                  (mapcar #'(lambda (x)
+                  (helper x nil)) (cdr form)))))
+              (cons (helper (car form) t)
+                  (mapcar #'(lambda (x)
+                  (helper x nil)) (cdr form))))))))
+    (helper form t)))
+
+
+(defmacro lisp/c-macro (nym llist &rest code)
+    (let ((helper (addsyms nym '-background))
+          (args (gensym)))
+    `(progn
+        (defun ,helper ,llist ,@(replace-fn nym helper code))
+        (cdefun ,nym (&rest ,args) (c (apply #',helper ,args))))))
+
+  ; (DEFMACRO LISP/C-MACRO (NYM LLIST &REST CODE)
+  ;     (LET ((HELPER (GENSYM)))
+  ;        `(CDEFUN ,NYM (REST ,ARGS)
+  ;             (LABELS ((,HELPER ,LLIST
+  ;                           ,@(REPLACE-FN NYM HELPER CODE)))
+  ;             (CDEFUN ,NYM (&REST ,ARGS)
+  ;                     (C ,(APPLY HELPER ARGS)))))))
                      
 (defun pairify (xs)
   (if (null xs)
@@ -167,7 +209,11 @@
 	     (if (null xs) nil
 		 (if (= 1 (length xs))
 		     (format nil "~a~a~a" ,lp (cof (car xs)) ,rp)
-		     (format nil "~a~a~a~a~a~a~a" ,lp ,lp (cof (car xs)) ,rp ',oper (apply (function ,(cnym nym)) (cdr xs)) ,rp))))))
+		     (format nil "~a~a~a~a~a~a~a"
+               ,lp
+                ,lp (cof (car xs)) ,rp
+               ',oper
+               (apply (function ,(cnym nym)) (cdr xs)) ,rp))))))
 
 (defmacro rredop (oper &key nym nparen)
   (def nym oper)
@@ -224,7 +270,7 @@
 (defun pc (&rest xs)
   (format t "~a" (apply #'c xs)))
 
-(defun repeatn (x &optional (n 1))
+(defun repeatnrepeatnrepeatn (x &optional (n 1))
   (format nil "~{~a~}"
           (loop for i from 1 to n collect x)))
 
@@ -313,7 +359,10 @@
               (mapcar #'(lambda (x) (macnx x n)) macro-form))
           macro-form)))
                      
-
+(defun padleft (lst item len)
+  (if (>= (length lst) len)
+      lst
+      (append (padleft lst item (1- len)) (list item))))
 
 (defun cof (x)
   (if (null x)
@@ -389,6 +438,7 @@
         (<<  :r t :nyms (<< l-shift shift-left shl))
         (" << " :l t :nparen t :nym <<+) ;; for C++
         (" >> " :l t :nparen t :nym >>+) ;; for C++
+        (= :l t :nparen t :nym =!)
         (<<= :l t :nyms (<<= l-shift-eq shift-left-eq shl-eq l-shift= shift-left= shl=))
         (>>  :r t :nyms (>> r-shift shift-right shr))
         (>>= :l t :nyms (>>= r-shift-eq shift-right-eq shr-eq >>= r-shift= shift-right= shr=))
@@ -405,7 +455,10 @@
 
 (cfuns
  (arr-decl (&rest xs)
-	   (format nil "{~{~a~^~(, ~)~}}" (mapcar #'cof xs)))
+     (format nil "{~{~a~^~(, ~)~}}" (mapcar #'cof xs)))
+ (struct-decl (&optional nym &rest xs)
+              (cofy nym)
+	   (format nil "(~a){~{~a~^~(, ~)~}}" nym (mapcar #'cof xs)))
  (sym/add (&rest xs)
 	  (cofsy xs)
 	  (strsof xs))
@@ -462,17 +515,16 @@
  (switch (var &rest pairs)
 	 (cofy var)
 	 (labels ((helper (pairs)
-		    (format nil "~a:~%   ~a~a;~%~a"
+		    (format nil "~a:~%   ~a~%~a"
 			    (cof (caar pairs))
-			    (block-c (f/list (cadar pairs)))
-			    (if (cddar pairs) (format nil "~%   break") "")
+			    (block-c (cdar pairs) NIL)
 			    (if (cdr pairs)
 				(helper (cdr pairs))
 				""))))
 	   (format nil "switch(~a){~a}" var (helper pairs))))
  (addr (x &optional (n 1))
        (cofy x)
-       (format nil "~a(~a)" (repeatn #\& n) x))
+       (format nil "~a(~a)" (repeatnrepeatnrepeatn #\& n) x))
  (ptr (x &optional (n 1))
       (format nil "~{~a~}(~a)" (loop for i from 1 to n collect #\*) (cof x)))
  (pt (x &optional (n 1))
@@ -503,9 +555,9 @@
  (var (x &optional type init &rest modifiers)
       (cofy x)
       (cofy type)
-      (format nil "~a ~a~{~a~^,~}~a"
+      (format nil "~a~a~{~a~^,~}~a"
               (if modifiers
-                  (format nil "~{~a~^ ~}" (mapcar #'cof modifiers))
+                  (format nil "~{~a ~}" (mapcar #'cof modifiers))
                   "")
               (if type (format nil "~a " type) "")
               (f/list x) (if init (format nil "=~a" (cof init)) "")))
@@ -525,13 +577,27 @@
    (if vars
        (format nil "union ~a{~%  ~a;~%}" nym (vars-c vars #\;))
        (format nil "union ~a" nym)))
- (block (lines &optional (bracket t))
-      (let ((preq ""))
+ (block (&optional lines (bracket t))
+      (let ((preq "")
+            (unempty (and lines (not (equal '(nil) lines)))))
         (if (eq 'const (car lines))
             (progn
               (setf preq " const ")
               (setf lines (cdr lines))))
-   (format nil "~a~a~%~{   ~a~^~(;~%~)~};~%~a" preq (if bracket #\{ "")  (mapcar #'cof (f/list lines)) (if bracket #\} "") )))
+        (if (listp (car lines))
+            (if (eq '-> (caar lines))
+                (progn
+                  (setf preq
+                      (format nil "~a -> ~a" preq (cof (cadar lines))))
+                  (setf lines (cdr lines)))))
+   (format nil "~a~a~a~{   ~a~(;~%~)~}~a"
+      preq
+      (if bracket #\{ "")
+      (if unempty #\Newline "")
+      (if unempty
+          (mapcar #'cof (f/list lines))
+          ())
+      (if bracket #\} "") )))
  (func (nym &optional typ vars &rest body)
        (cofy nym)
        (cofy typ)
@@ -548,9 +614,11 @@
     (cofy typ)
 	  (cofsy varforms)
 	  (format nil "~a(*~a)(~{~a~^,~})" typ nym varforms))
- (return (&optional x)
-	 (cofy x)
-	 (format nil "return ~a" x))
+ (return (&optional x &rest ys)
+   (cofy x)
+	 (format nil "return ~a~a~{~^ ~a~}"
+          x (if ys #\; "")
+          (if ys (mapcar #'cof ys) ())))
  (typedef (x &optional y)
 	  (cofy x)
 	  (format nil "typedef ~a ~a;~%" x (if y (cof y) "")))
@@ -601,7 +669,7 @@
  (comment  (&rest xs)
            (let* ((small (eq (car xs) 's))
                   (s (format nil "/* ~{~a~^ ~} */~%" (mapcar #'cof (if small (cdr xs) xs))))
-                  (v (if small "" (format nil "/**~a**/~%" (repeatn #\* (- (length s) 7))))))
+                  (v (if small "" (format nil "/**~a**/~%" (repeatnrepeatnrepeatn #\* (- (length s) 7))))))
 	     (format nil "~%~a~a~a~%" v s v)))
  (header (nym &key local)
 	 (include-c (h-file-c nym) :local local))
@@ -622,7 +690,12 @@
         (eval `(cdefun ,f ,llist ,@body))
         (sethash f t *macrolist*)
         (format nil "/**DEFINED: \"~a\" (lispmacro)**/" f))))
-            
+ 
+ (lisp/c-macro (nym llist &rest body)
+      (progn
+        (eval `(lisp/c-macro ,nym ,llist ,@body))
+        (format nil "/**LISP/C MACRO \"~a\"**/" nym)))
+ 
  (lambda (llist template &rest args)
   (cof (eval `(apply (replacify-lambda ,llist ,template) ',args))))
  (template (f vars template)
@@ -651,7 +724,10 @@
 		(cuda/dim3-c 'dim/grid x y))
  (cuda/shared (&rest xs)
     (format nil "__shared__ ~a" (apply #'var-c xs)))
- (funcall (func &rest args)
+ (repeat (x &optional (n 1))
+     (cofy x)
+    (format nil "~{~a~^ ~}" (loop for i from 1 to n collect x)))
+  (funcall (func &rest args)
     (apply (cnym func) args))
  (apply (func &rest args)
     (setf args (append (butlast args) (car (last args))))
@@ -709,19 +785,41 @@
 )
 ;; C++ Stuff
 (cfuns
-  (headers++ (&rest xs)
-      (format nil "~{#include<~a>~%~}" (mapcar #'cof xs)))
+ (hh-file (nym)
+   (cofy nym)
+   (format nil "~a.hh" nym))
+ (header++ (nym &key local)
+   (if local
+       (include-c (hh-file-c nym) :local local)
+       (include-c nym)))
+ (headers++ (&rest xs)
+    (format nil "~{~a~}" (mapcar #'(lambda (x) (apply #'header++-c (f/list x))) xs)))
   (tridot (x)
           (cofy x)
           (format nil "~a..." x))
-  (struct++ (nym &rest xs)
+  (struct++ (&optional nym &rest xs)
       (cofy nym)
     (csyn '***curr-class*** nym)
       (format nil "struct ~a~a" nym (if xs (block-c xs) "")))
+  (virtual (&optional x y)
+      (cofy x)
+      (format nil "virtual ~a~a" x
+              (if y (format nil " = ~a" (cof y)) "")))
+  (deprecated (&optional x &rest msg)
+      (cofy x)
+      (format nil "[[deprecated~a]] ~a"
+          (if msg (format nil "(\"~{~a~^ ~}\")" (mapcar #'cof msg)) "")
+          x))
+  (delete (&optional x)
+      (cofy x)
+      (format nil "delete ~a" x))
   (lambda++ (&optional capture-list params attribs ret &rest body)
-            (setf capture-list (mapcar #'(lambda (x) (c-strify x t)) (f/list capture-list)))
-            (setf attribs (mapcar #'(lambda (x) (c-strify x t)) (f/list attribs)))
-            (cofsy attribs)
+            (if (eq capture-list '[])
+                (setf capture-list ()))
+            (setf capture-list (mapcar
+                  #'(lambda (x) (if (atom x) (c-strify x t) (cof x))) (f/list capture-list)))
+            ; (setf attribs (mapcar #'(lambda (x) (c-strify x t)) (f/list attribs)))
+            (setf attribs (mapcar #'cof (f/list attribs)))
       (format nil "[~{~a~^,~}]~a~{~^ ~a~}~a~a"
               capture-list
               (if (or params attribs ret) (parenify (vars-c params #\, nil)) "")
@@ -729,6 +827,8 @@
               (if ret
                   (format nil " -> ~a " (cof ret)) "")
               (block-c body)))
+  (lambda++* (&optional args &rest body)
+        (apply #'lambda++-c (append (padleft (f/list args) nil 4) body)))
               
   (namespace (&rest terms)
       (cofsy terms)
@@ -736,16 +836,35 @@
   (namespacedecl (nym &rest terms)
      (cofy nym)
       (format nil "namespace ~a~a" nym (block-c terms)))
-  (typ& (nym &optional (n 1))
+  (typ& (&optional nym (n 1) const)
       (cofy nym)
-      (format nil "~a~a" nym (repeatn #\& n)))
-  (ptr& (nym &optional (n 1))
+      (if (not (numberp n))
+         (progn
+           (setf n 1)
+           (setf const 'const)))
+      (format nil "~a~a~a" nym 
+              (if const (format nil " ~a" (cof const)) "")
+              (repeatnrepeatnrepeatn #\& n)))
+  (ptr& (&optional nym (n 1))
         (cofy nym)
-        (format nil "~a~a" (repeatn #\& n) nym))
-  (class (nym &rest terms)
+        (format nil "~a~a" (repeatnrepeatnrepeatn #\& n) nym))
+  (typ[&] (&optional nym (n 1))
+      (cofy nym)
+      (format nil "~a(~a)" nym (repeatnrepeatnrepeatn #\& n)))
+  (ptr[&] (&optional nym (n 1))
+        (cofy nym)
+        (format nil "(~a)~a" (repeatnrepeatnrepeatn #\& n) nym))
+  (class (&optional nym &rest terms)
     (cofy nym)
     (csyn '***curr-class*** nym)
-    (format nil "class ~a~a" nym (if terms (block-c terms) "")))
+    (if (listp (car terms))
+        (if (member (caar terms) '(inherits inh))
+            (progn
+              (setf nym (format nil "~a : ~{~a~^ ~}"
+                              nym
+                              (mapcar #'cof (cdar terms))))
+              (setf terms (cdr terms)))))
+    (format nil "class~a~a~a" (if nym " " "") nym (if terms (block-c terms) "")))
   (protected (&rest terms)
     (cofsy terms)
     (format nil "protected:~%~a" (block-c terms nil)))
@@ -774,9 +893,18 @@
     (format nil "~~~a(~a)~a"
             (cof '***curr-class***)
             (vars-c args)
-            (if code (block-c code) ""))) 
+            (if code (block-c code) "")))
+  (constructor ()
+    (format nil "~a" (cof '***curr-class***)))
+  (destructor ()
+    (format nil "~~~a" (cof '***curr-class***)))
+  (suffix (x y)
+    (format nil "~a~a" (cof x) (c-strify y)))
   (operator (oper &optional typ args &rest code)
-    (let ((opr "operator"))
+    (let ((opr "operator") (constif ""))
+                  (if (listp oper)
+                (if (member (car oper) '(s su suf suffix))
+                    (setf oper (format nil "\"\"_~a" (c-strify (cadr oper))))))
             (cofy typ)
             (if (listp oper)
                 (if (member (car oper) '(@ ns namespace n/c))
@@ -787,24 +915,33 @@
                               (append (butlast (cdr oper)) (list opr))))
                       (setf oper (car (last oper))))))
             (if (null oper) (setf oper "()"))
-            (setf oper (string-downcase (strof oper))) 
-      (format nil "~a ~a~a~a(~a)~a"
-              typ opr (if (alphap (char (strof oper) 0)) " " "") oper (vars-c args) (if code (block-c code) ""))))
+            (setf oper (c-strify oper t))
+            (if (eq (car code) 'const)
+                (progn
+                  (setf constif " const ")
+                  (setf code (cdr code))))
+      (format nil "~a ~a~a~a(~a)~a~a"
+              typ
+              opr
+              (if (alphap (char (strof oper) 0)) " " "")
+              oper
+              (vars-c args)
+              constif
+              (if code (block-c code) ""))))
   (friend (code)
     (cofy code)
     (format nil "friend ~a" code))
   (decltemp (&optional var typ &rest code)
       (if (listp var)
-            (setf var (mapcar #'f/list var))
           (progn
-            (setf var (f/list/n (list (list var typ))))
-            (setf typ (car code))
-            (setf code (cdr code))))
+            (setf var (mapcar #'f/list var))
+            (setf code (cons typ code)))
+          (setf var (f/list/n (list (list var typ)))))
       (cofy typ)
       (setf var (format nil "~{~a~^,~}"
                           (mapcar #'(lambda (pair) (format nil "~{~a~^ ~}"  (reverse (mapcar #'cof pair)))) var)))
       (format nil "template ~a~{~^ ~a~}" (if (or typ var)
-                      (format nil "~a<~a>" typ var) "<>")
+                      (format nil "<~a>" var) "<>")
               (if code (mapcar #'cof code) '(""))))
   (temp (&optional var &rest typs)
         (cofy var) (cofsy typs)
@@ -819,9 +956,10 @@
   (new (&rest xs)
        (cofsy xs)
        (format nil "new ~{~a~}" xs))
-  (try/catch (catch &rest body)
-      (cofy catch)
-        (format nil "try~acatch(~a)" (block-c body) catch))
+  (try/catch (catch &optional trybody catchbody)
+    (setf catch (apply #'var-c (f/list catch)))
+        (format nil "try~acatch(~a)~a" (block-c (f/list trybody))
+                catch (if catchbody (block-c (f/list catchbody)) "")))
   (strlit (&rest xs)
           (format nil "~a" (apply #'str-c xs)))
   (explicit (&rest xs)
@@ -834,6 +972,8 @@
 
 (macropairs cfunc-syn
 func f{}
+funcarg arg{}
+funcarg fa{}
 namespace n/s
 namespace ns
 namespace @
@@ -841,16 +981,28 @@ slot ->
 mem .>
 typ* t*
 typ& t&
+typ[&] [t&]
+typ[&] t[&]
+typ[&] t&[]
 ptr p*
 ptr& p&
+ptr[&] [p&]
+ptr[&] p[&]
+ptr[&] p&[]
 ptr& var&
 var v
+delete del
 class c.
 class d/c
 operator op
 operator opr
 construct   cx
+constructor   cxr
 destroy dx
+destructor dxr
+virtual vxl
+virtual virt
+virtual virt.
 return r
 headers hh
 headers++ h+
@@ -873,9 +1025,14 @@ switch sx
 call c
 struct s{}
 struct sx
+struct-decl sd{}
+struct-decl s{}s
+struct-decl {sd}
 struct++ s{}+
 struct++ s{+}
 struct++ sx+
+struct++ sx++
+struct++ struct+
 block b
 define d#
 pragma p#
@@ -890,6 +1047,9 @@ template t.
 templates t..
 lispmacro l/m
 lispmacro !!l
+lisp/c-macro l/c-macro
+lisp/c-macro l/c/m
+lisp/c-macro !!lc
 camelcase camel
 lcamelcase lcamel
 capitalize cap
@@ -929,8 +1089,23 @@ namespacedecl n/s/d
 namespacedecl ns{}
 namespacedecl n/s{}
 tridot t---
-lambda++ l+)
+tridot t...
+tridot d...
+tridot v...
+lambda++ l++
+lambda++ l+
+lambda++ l[]
+lambda++ lambda[]
+lambda++ lambda+
+lambda++* l++*
+lambda++* l+*
+lambda++* l*
+lambda++* l[]*
+lambda++* lambda[]*
+lambda++* lambda+*
+lambda++* lambda*
 
+)
 
 ;; SYNONYMS
 
@@ -1174,7 +1349,13 @@ lambda++ l+)
 '-empty-    " "
 '--         " "
 '-          "_"
-'$          nil)
+'$          nil
+'int+ "long int"
+'int++ "long long int"
+'double+ "long double"
+'float+ "double"
+'float++ "long double"
+'template-params "template-params")
 
 (defun count-lines-in-file (filename)
   (let ((n 0))
