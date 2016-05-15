@@ -1,18 +1,20 @@
 					; Copyright Jonathan Baca, 2016
 
-(setf ***C/LISP-SYSTEM-LOADED*** T)
 
-(if (not (boundp ***C/LISP-SYSTEM-LOADED***))     
+(if (not (boundp '***C/LISP-SYSTEM-LOADED***))     
  (progn
     (format nil "Welcome to LISP/C. Loading constants...")
-    (defparameter *lbrac* #\[)
-    (defparameter *file-out* nil)
-    (defparameter *exec-out* nil)
-    (defparameter *last-compiled* nil)
-    (defparameter *c-synonyms* (make-hash-table))
-    (defparameter *macrolist* (make-hash-table))
-    (defparameter *templatelist* (make-hash-table))))
+    (setf *lbrac* #\[)
+    (setf *file-out* nil)
+    (setf *exec-out* nil)
+    (setf *last-compiled* nil)
+    (setf *c-synonyms* (make-hash-table))
+    (setf *macrolist* (make-hash-table))
+    (setf *templatelist* (make-hash-table))))
 
+ (setf ***C/LISP-SYSTEM-LOADED*** T)
+
+                     
 (defun pairify (xs)
   (if (null xs)
       nil
