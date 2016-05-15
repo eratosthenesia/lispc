@@ -1,9 +1,9 @@
 					; Copyright Jonathan Baca, 2016
 
 
-(if (not (boundp '***C/LISP-SYSTEM-LOADED***))     
+(if (not (boundp '  ***C/LISP-SYSTEM-LOADED***))     
  (progn
-    (format nil "Welcome to LISP/C. Loading constants...")
+    (format t "Welcome to LISP/C. Loading constants...")
     (setf *lbrac* #\[)
     (setf *file-out* nil)
     (setf *exec-out* nil)
