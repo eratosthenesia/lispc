@@ -1,5 +1,9 @@
 # __LISP__/__c__ (Lispsy)
 
+## Stay Tuned!
+
+Version 2.0 is coming out very soon. It'll have support for at least **SBCL** if not a few other versions, and preliminary tests show that it's generating much more readable code (with "proper" indentations and everything).
+
 ## Installing
 
 To install, simply go into the directory that you downloaded everything into, run `clisp`, and type `(load "c.lisp")`. To compile a `cl` file into a `c` file, type `(c-cl-file source.cl dest.c)`. To compile and run a `cl` file, type in `(compile-and-run-cl-file file.cl)`. More documentation on this part to come. <sup><sub>**TODO**</sub></sup>
@@ -342,7 +346,7 @@ This uses **gcc** to compile your file (at *file-in*). It takes a number of keyw
 ### `(compile-and-run-cl-file` ... `)`
 Uses the same syntax as `compile-cl-file`.
 
-### `(c-cl-file`	 file-in c-file `)`
+### `(c-cl-file` file-in c-file `)`
 Compiles **LISP**/**c** code into **C** code from *file-in* to *c-file*.
 
 ### Other conventions
