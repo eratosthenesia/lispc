@@ -1,0 +1,1 @@
+Mage logs change txt
