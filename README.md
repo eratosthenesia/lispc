@@ -1,5 +1,9 @@
 # __LISP__/__c__ (Lispsy)
 
+## **UPDATE**
+
+I am working on version 2 again. Sorry it took so long – life happened.
+
 ## Stay Tuned!
 
 Version 2.0 is coming out very soon. It'll have support for at least **SBCL** if not a few other versions, and preliminary tests show that it's generating much more readable code (with "proper" indentations and everything).
